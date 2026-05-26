@@ -1,7 +1,40 @@
-import 'post_material_screen.dart';
-import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
+import 'dart:async';
+import 'dart:math';
 
+import 'package:circular_jo/constants/app_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'post_material_screen.dart';
+
+// ─── Color Tokens ────────────────────────────────────────────────────────────
+class _HomeColors {
+  static const primary = Color(0xFF00683C);
+  static const primaryContainer = Color(0xFF18834F);
+  static const onPrimaryContainer = Color(0xFFE9FFEC);
+  static const secondary = Color(0xFF006B5F);
+  static const secondaryContainer = Color(0xFF9BEFE0);
+  static const onSecondaryContainer = Color(0xFF066F63);
+  static const tertiary = Color(0xFF00665C);
+  static const surface = Color(0xFFF3FAFF);
+  static const surfaceContainerLowest = Color(0xFFFFFFFF);
+  static const surfaceContainerLow = Color(0xFFECF5FA);
+  static const surfaceContainerHigh = Color(0xFFE0EAEF);
+  static const surfaceContainer = Color(0xFFE6EFF5);
+  static const surfaceVariant = Color(0xFFDAE4E9);
+  static const onSurface = Color(0xFF141D21);
+  static const onSurfaceVariant = Color(0xFF3E4941);
+  static const outline = Color(0xFF6E7A70);
+  static const outlineVariant = Color(0xFFBECABE);
+  static const error = Color(0xFFBA1A1A);
+  static const errorContainer = Color(0xFFFFDAD6);
+  static const onErrorContainer = Color(0xFF93000A);
+  static const teal066 = Color(0xFF066F63);
+  static const cardBorder = Color(0xFFD4E5DE);
+  static const background = Color(0xFFF4F8F6);
+}
+
+// ─── Home Screen ──────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -9,93 +42,216 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  int selectedIndex = 0;
-  void _goToPostMaterialScreen() {
-    Navigator.push(
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin {
+  int _selectedIndex = 0;
+
+  Future<void> _goToPostMaterialScreen() async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => const PostMaterialScreen(),
       ),
     );
+
+    if (!mounted) return;
+
+    if (result != null && result is Map && result['posted'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${result['title']} listing posted successfully. Waiting for receiver.',
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.deepTeal,
+        ),
+      );
+    }
+  }
+
+
+  // Count-up controllers
+  late AnimationController _countController;
+  late Animation<double> _kgAnimation;
+  late Animation<double> _pointsAnimation;
+  late Animation<double> _pickupsAnimation;
+  late Animation<double> _mealsAnimation;
+
+  // Glow/breathing controller
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
+
+  // Shimmer controller
+  late AnimationController _shimmerController;
+  late Animation<double> _shimmerAnimation;
+
+  // Pulse controller for notification dot
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Count-up
+    _countController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _kgAnimation =
+        Tween<double>(begin: 0, end: 120).animate(CurvedAnimation(
+          parent: _countController,
+          curve: Curves.easeOut,
+        ));
+    _pointsAnimation =
+        Tween<double>(begin: 0, end: 850).animate(CurvedAnimation(
+          parent: _countController,
+          curve: Curves.easeOut,
+        ));
+    _pickupsAnimation =
+        Tween<double>(begin: 0, end: 18).animate(CurvedAnimation(
+          parent: _countController,
+          curve: Curves.easeOut,
+        ));
+    _mealsAnimation =
+        Tween<double>(begin: 0, end: 240).animate(CurvedAnimation(
+          parent: _countController,
+          curve: Curves.easeOut,
+        ));
+
+    // Glow breathing
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.2, end: 0.5).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
+
+    // Shimmer
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat();
+    _shimmerAnimation =
+        Tween<double>(begin: -1.0, end: 2.0).animate(_shimmerController);
+
+    // Pulse dot
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 2.5).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeOut),
+    );
+
+    _countController.forward();
+  }
+
+  @override
+  void dispose() {
+    _countController.dispose();
+    _glowController.dispose();
+    _shimmerController.dispose();
+    _pulseController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.softBackground,
+      backgroundColor: _HomeColors.background,
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            _buildHeader(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildImpactCards(),
-                    const SizedBox(height: 22),
-                    _buildPostMaterialButton(),
-                    const SizedBox(height: 26),
-                    _buildIncomingRequests(),
-                    const SizedBox(height: 26),
-                    _buildActiveListings(),
-                    const SizedBox(height: 26),
-                    _buildPickupVerificationCard(),
-                  ],
+            // Floating leaf particles
+            ..._buildLeaves(),
+            Column(
+              children: [
+                _buildTopAppBar(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildImpactSection(),
+                        const SizedBox(height: 24),
+                        _buildMainCTA(),
+                        const SizedBox(height: 24),
+                        _buildIncomingRequest(),
+                        const SizedBox(height: 24),
+                        _buildActiveListings(),
+                        const SizedBox(height: 24),
+                        _buildPickupVerification(),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigation(),
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(26),
-          bottomRight: Radius.circular(26),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.charcoal.withOpacity(0.06),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+  // ─── Floating Leaf Particles ───────────────────────────────────────────────
+  List<Widget> _buildLeaves() {
+    return [
+      _FloatingLeaf(
+        top: 80,
+        left: MediaQuery.of(context).size.width * 0.1,
+        size: 24,
+        color: _HomeColors.primary.withOpacity(0.08),
+        duration: 25,
+        delay: 0,
       ),
+      _FloatingLeaf(
+        top: MediaQuery.of(context).size.height * 0.35,
+        right: MediaQuery.of(context).size.width * 0.12,
+        size: 18,
+        color: _HomeColors.secondary.withOpacity(0.08),
+        duration: 30,
+        delay: 5,
+      ),
+      _FloatingLeaf(
+        top: MediaQuery.of(context).size.height * 0.65,
+        left: MediaQuery.of(context).size.width * 0.18,
+        size: 22,
+        color: _HomeColors.primaryContainer.withOpacity(0.08),
+        duration: 35,
+        delay: 12,
+      ),
+    ];
+  }
+
+  // ─── Top App Bar ───────────────────────────────────────────────────────────
+  Widget _buildTopAppBar() {
+    return Container(
+      color: _HomeColors.surface,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
+          // Logo
           Container(
-            height: 54,
-            width: 54,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryGreen,
-                  AppColors.brightTeal,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
+              shape: BoxShape.circle,
+              border: Border.all(color: _HomeColors.outlineVariant),
             ),
-            child: const Icon(
-              Icons.recycling_rounded,
-              color: Colors.white,
-              size: 30,
+            child: ClipOval(
+              child: Image.network(
+                'https://lh3.googleusercontent.com/aida-public/AB6AXuDqm8e5NszwOHEmC9FlF337ngGkViuYGXPKA7nHRl4EovjMVHlgJ2AKJ59oo0is6waaCrueMmkyqsBA5miK_tVhKrhWs8VOR28WRbtgwJJh-HCwuThFjWd70jszrTUkUWrIY_mzBUchHsuM5wuiSZ0-C1nvsnvPIKA7Yv06_RNuhMy4nVEGtXZJobEuRYnEQ4fMAusw_WiP_jB3UbyFU8C29n904H8goGOAGf-0kzUMuoKnfNSeoFYeTjrTwZ0_X_0jqmYGbhuiZq8',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Icon(Icons.store, color: _HomeColors.primary),
+              ),
             ),
           ),
-
-          const SizedBox(width: 14),
-
+          const SizedBox(width: 12),
+          // Text
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,330 +259,338 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'Welcome back,',
                   style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.charcoal.withOpacity(0.55),
+                    fontFamily: 'Hanken Grotesk',
+                    fontSize: 12,
+                    letterSpacing: 0.05 * 12,
                     fontWeight: FontWeight.w600,
+                    color: _HomeColors.onSurfaceVariant.withOpacity(0.7),
                   ),
                 ),
-                const SizedBox(height: 3),
-                Text(
+                const Text(
                   'Green Bites Restaurant',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 20,
-                    color: AppColors.charcoal,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.4,
+                    fontFamily: 'Manrope',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: _HomeColors.onSurface,
+                    height: 1.1,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.freshGreen.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(20),
+                    color: _HomeColors.secondaryContainer,
+                    borderRadius: BorderRadius.circular(9999),
                   ),
-                  child: Text(
-                    'Silver Impact Partner',
+                  child: const Text(
+                    'SILVER IMPACT PARTNER',
                     style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.primaryGreen,
-                      fontWeight: FontWeight.w800,
+                      fontFamily: 'Hanken Grotesk',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: _HomeColors.onSecondaryContainer,
+                      letterSpacing: 0.8,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-
-          Container(
-            height: 46,
-            width: 46,
-            decoration: BoxDecoration(
-              color: AppColors.softBackground,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.mintBorder),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.deepTeal,
-                  size: 26,
-                ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    height: 8,
-                    width: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.redAccent,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImpactCards() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitle('Today’s Recovery Impact'),
-        const SizedBox(height: 12),
-
-        Row(
-          children: [
-            Expanded(
-              child: _impactCard(
-                title: 'Kg Diverted',
-                value: '120',
-                icon: Icons.delete_outline_rounded,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _impactCard(
-                title: 'Impact Points',
-                value: '850',
-                icon: Icons.stars_rounded,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 12),
-
-        Row(
-          children: [
-            Expanded(
-              child: _impactCard(
-                title: 'Verified Pickups',
-                value: '18',
-                icon: Icons.verified_rounded,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _impactCard(
-                title: 'Meals Supported',
-                value: '240',
-                icon: Icons.restaurant_rounded,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _impactCard({
-    required String title,
-    required String value,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.mintBorder),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.charcoal.withOpacity(0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 7),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 38,
-            width: 38,
-            decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.10),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              icon,
-              color: AppColors.primaryGreen,
-              size: 22,
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              color: AppColors.charcoal,
-              letterSpacing: -0.7,
-            ),
-          ),
-
-          const SizedBox(height: 3),
-
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.charcoal.withOpacity(0.56),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostMaterialButton() {
-    return GestureDetector(
-      onTap: _goToPostMaterialScreen,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.primaryGreen,
-              AppColors.deepTeal,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryGreen.withOpacity(0.35),
-              blurRadius: 22,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              height: 54,
-              width: 54,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.16),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Icon(
-                Icons.add_photo_alternate_rounded,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-
-            const SizedBox(width: 16),
-
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          // Notification bell
+          GestureDetector(
+            onTap: () {},
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Text(
-                    'Post Material',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Upload a photo and let AI classify it',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                  const Icon(Icons.notifications_outlined,
+                      color: _HomeColors.onSurface),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: AnimatedBuilder(
+                      animation: _pulseAnimation,
+                      builder: (_, child) {
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 8 * _pulseAnimation.value,
+                              height: 8 * _pulseAnimation.value,
+                              decoration: BoxDecoration(
+                                color: _HomeColors.error.withOpacity(
+                                    1.0 - (_pulseAnimation.value - 0.8) / 1.7),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: _HomeColors.error,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
             ),
-
-            const Icon(
-              Icons.arrow_forward_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildIncomingRequests() {
+  // ─── Impact Section ────────────────────────────────────────────────────────
+  Widget _buildImpactSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle('Incoming Request'),
+        const Text(
+          "Today's Recovery Impact",
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: _HomeColors.onSurface,
+          ),
+        ),
         const SizedBox(height: 12),
+        AnimatedBuilder(
+          animation: _countController,
+          builder: (_, __) {
+            return GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 1.3,
+              children: [
+                _StatCard(
+                  icon: Icons.monitor_weight_outlined,
+                  value: '${_kgAnimation.value.ceil()} kg',
+                  label: 'Kg Diverted',
+                ),
+                _StatCard(
+                  icon: Icons.star_outline,
+                  value: '${_pointsAnimation.value.ceil()}',
+                  label: 'Impact Points',
+                ),
+                _StatCard(
+                  icon: Icons.check_circle_outline,
+                  value: '${_pickupsAnimation.value.ceil()}',
+                  label: 'Verified Pickups',
+                ),
+                _StatCard(
+                  icon: Icons.restaurant_outlined,
+                  value: '${_mealsAnimation.value.ceil()}',
+                  label: 'Meals Supported',
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
 
+  // ─── Main CTA ──────────────────────────────────────────────────────────────
+  Widget _buildMainCTA() {
+    return AnimatedBuilder(
+      animation: _shimmerAnimation,
+      builder: (_, child) {
+        return GestureDetector(
+          onTap: _goToPostMaterialScreen,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF18834F), Color(0xFF04998B)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: _HomeColors.primary.withOpacity(0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Stack(
+                children: [
+                  // Shimmer overlay
+                  Positioned.fill(
+                    child: Transform.translate(
+                      offset: Offset(
+                          _shimmerAnimation.value *
+                              MediaQuery.of(context).size.width,
+                          0),
+                      child: Container(
+                        width: 60,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0),
+                              Colors.white.withOpacity(0.12),
+                              Colors.white.withOpacity(0),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.photo_camera,
+                              color: Colors.white, size: 26),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Post Material',
+                                style: TextStyle(
+                                  fontFamily: 'Manrope',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Upload a photo and let AI classify it',
+                                style: TextStyle(
+                                  fontFamily: 'Manrope',
+                                  fontSize: 13,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ─── Incoming Request ──────────────────────────────────────────────────────
+  Widget _buildIncomingRequest() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Incoming Request',
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: _HomeColors.onSurface,
+              ),
+            ),
+            const Text(
+              'View All',
+              style: TextStyle(
+                fontFamily: 'Hanken Grotesk',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: _HomeColors.primary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.mintBorder),
+            color: _HomeColors.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _HomeColors.cardBorder),
             boxShadow: [
               BoxShadow(
-                color: AppColors.charcoal.withOpacity(0.04),
-                blurRadius: 14,
-                offset: const Offset(0, 7),
+                color: _HomeColors.primaryContainer.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: AppColors.brightTeal.withOpacity(0.13),
-                    child: Icon(
-                      Icons.volunteer_activism_rounded,
-                      color: AppColors.deepTeal,
+                  // Charity logo
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: _HomeColors.surfaceContainer,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        'https://lh3.googleusercontent.com/aida-public/AB6AXuDTkD-xwQAxs9IVkPKQ4ztcvocsOnxbJ8k1SiB1PcyU5X7YXorfXqPcR0PKsPvSsatjSPf4J9Ihe6Z4GJnWY9Wa-92QHOVhYLKfrs1WtKsajM7wm4zNV-eHxuIiBjVjhIr-0uvvUkmQb5UDeb8T-WJositdu8cN5a8Iv5SsoSbjpJlRiZr7EVk1x0WSsurxVZvmQYZ20fdOVp8xCZnGElVUj1ZvQJvTtkjNb06SRr-FDthvyZThejMC4UGKPBmGu0nbVz2KoL6yNKM',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.volunteer_activism, color: _HomeColors.primary),
+                      ),
                     ),
                   ),
-
-                  const SizedBox(width: 12),
-
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Hope Charity requested your surplus food',
+                        const Text(
+                          'Hope Charity requested surplus food',
                           style: TextStyle(
-                            color: AppColors.charcoal,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
+                            fontFamily: 'Manrope',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: _HomeColors.onSurface,
+                            height: 1.3,
                           ),
                         ),
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 4),
                         Text(
                           'Pickup: Today, 6:00 PM • 2.4 km away',
                           style: TextStyle(
-                            color: AppColors.charcoal.withOpacity(0.55),
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Manrope',
+                            fontSize: 13,
+                            color: _HomeColors.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -434,46 +598,44 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () => HapticFeedback.lightImpact(),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.redAccent,
-                        side: BorderSide(
-                          color: Colors.redAccent.withOpacity(0.4),
-                        ),
+                        side: const BorderSide(color: _HomeColors.error, width: 2),
+                        foregroundColor: _HomeColors.error,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                            borderRadius: BorderRadius.circular(10)),
                       ),
                       child: const Text(
                         'Reject',
-                        style: TextStyle(fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                            fontFamily: 'Hanken Grotesk',
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => HapticFeedback.mediumImpact(),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
-                        foregroundColor: AppColors.white,
-                        elevation: 0,
+                        backgroundColor: _HomeColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                            borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
                       ),
                       child: const Text(
                         'Accept',
-                        style: TextStyle(fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                            fontFamily: 'Hanken Grotesk',
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
@@ -486,303 +648,614 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ─── Active Listings ───────────────────────────────────────────────────────
   Widget _buildActiveListings() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle('Active Listings'),
-        const SizedBox(height: 12),
-
-        _listingCard(
-          title: '10 kg Surplus Food',
-          status: 'Pickup accepted',
-          receiver: 'Hope Charity',
-          points: '80 expected points',
-          urgency: 'High urgency',
-          icon: Icons.restaurant_rounded,
-          urgencyColor: Colors.orangeAccent,
+        const Text(
+          'Active Listings',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: _HomeColors.onSurface,
+          ),
         ),
-
         const SizedBox(height: 12),
-
-        _listingCard(
+        _ListingCard(
+          title: '10 kg Surplus Food',
+          statusIcon: Icons.check_circle_outline,
+          statusText: 'Pickup accepted',
+          statusColor: _HomeColors.primary,
+          badgeText: 'HIGH URGENCY',
+          badgeColor: _HomeColors.errorContainer,
+          badgeTextColor: _HomeColors.onErrorContainer,
+          receiverName: 'Hope Charity',
+          receiverImageUrl:
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuCPaztDnYbsV53k_QYkAso6PmzS9_eh73vvxFO5h2AMWpkCJzzZzYxmX4-Y__G33Q9hfYOu5wGci9vg77se1dmacbB-OUkndoychgMN0EGRjPXgA_Csbp9mVNeAnYkbV-BgsGfYP9dA0ei0JORuPPDYrP3fb1geNiaPf0f8T4lAlAZQhz45e5f7bHBAfKsBhaFweIi8X73rnSfW60jVJGZiitxVahJBoGwj7cxPQj6_6t-Lv336jDO_2yaE6G_BaDgkDNBxyg-KGo8',
+          points: '80 expected points',
+          dimBottom: false,
+        ),
+        const SizedBox(height: 16),
+        _ListingCard(
           title: 'Cardboard Boxes',
-          status: 'Waiting for receiver',
-          receiver: 'No receiver yet',
+          statusIcon: Icons.hourglass_empty,
+          statusText: 'Waiting for receiver',
+          statusColor: _HomeColors.outline,
+          badgeText: 'FLEXIBLE PICKUP',
+          badgeColor: _HomeColors.surfaceContainer,
+          badgeTextColor: _HomeColors.onSurfaceVariant,
+          receiverName: 'No receiver yet',
+          receiverImageUrl: null,
           points: '45 expected points',
-          urgency: 'Flexible pickup',
-          icon: Icons.inventory_2_rounded,
-          urgencyColor: AppColors.brightTeal,
+          dimBottom: true,
         ),
       ],
     );
   }
 
-  Widget _listingCard({
-    required String title,
-    required String status,
-    required String receiver,
-    required String points,
-    required String urgency,
-    required IconData icon,
-    required Color urgencyColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.mintBorder),
-      ),
-      child: Row(
-        children: [
-          Container(
-            height: 48,
-            width: 48,
-            decoration: BoxDecoration(
-              color: urgencyColor.withOpacity(0.13),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              icon,
-              color: urgencyColor,
-              size: 26,
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: AppColors.charcoal,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  status,
-                  style: TextStyle(
-                    color: AppColors.primaryGreen,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  receiver,
-                  style: TextStyle(
-                    color: AppColors.charcoal.withOpacity(0.52),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: urgencyColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  urgency,
-                  style: TextStyle(
-                    color: urgencyColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                points,
-                style: TextStyle(
-                  color: AppColors.charcoal.withOpacity(0.55),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
+  // ─── Pickup Verification ───────────────────────────────────────────────────
+  Widget _buildPickupVerification() {
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (_, child) {
+        return Container(
+          decoration: BoxDecoration(
+            color: _HomeColors.teal066,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: _HomeColors.teal066.withOpacity(_glowAnimation.value),
+                blurRadius: 20,
+                spreadRadius: 2,
               ),
             ],
           ),
+          padding: const EdgeInsets.all(20),
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              // Background QR icon
+              Positioned(
+                top: -4,
+                right: -4,
+                child: Icon(
+                  Icons.qr_code_2,
+                  size: 80,
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'UPCOMING MILESTONE',
+                    style: TextStyle(
+                      fontFamily: 'Hanken Grotesk',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.8,
+                      color: Colors.white.withOpacity(0.75),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Pickup scheduled',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Hope Charity is arriving today at 6:00 PM. Have your verification code ready.',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.7),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: () => HapticFeedback.mediumImpact(),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.qr_code_2, color: Colors.white, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Code',
+                            style: TextStyle(
+                              fontFamily: 'Hanken Grotesk',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ─── Bottom Nav ────────────────────────────────────────────────────────────
+  Widget _buildBottomNav() {
+    const navItems = [
+      _NavItem(icon: Icons.home, label: 'Home'),
+      _NavItem(icon: Icons.add_circle_outline, label: 'Post'),
+      _NavItem(icon: Icons.format_list_bulleted, label: 'Listings'),
+      _NavItem(icon: Icons.eco_outlined, label: 'Impact'),
+      _NavItem(icon: Icons.person_outline, label: 'Profile'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _HomeColors.surfaceContainerLowest,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: _HomeColors.primaryContainer.withOpacity(0.12),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
         ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(navItems.length, (i) {
+              final selected = _selectedIndex == i;
+              return GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+
+                  if (i == 1) {
+                    _goToPostMaterialScreen();
+                    return;
+                  }
+
+                  setState(() => _selectedIndex = i);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.elasticOut,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        selected
+                            ? _filledIcon(navItems[i].icon)
+                            : navItems[i].icon,
+                        color: selected
+                            ? _HomeColors.primary
+                            : _HomeColors.onSurfaceVariant,
+                        size: 24,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        navItems[i].label,
+                        style: TextStyle(
+                          fontFamily: 'Hanken Grotesk',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                          color: selected
+                              ? _HomeColors.primary
+                              : _HomeColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildPickupVerificationCard() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitle('Pickup Verification'),
-        const SizedBox(height: 12),
+  IconData _filledIcon(IconData icon) {
+    // Return filled variants for common icons
+    if (icon == Icons.home) return Icons.home;
+    if (icon == Icons.person_outline) return Icons.person;
+    if (icon == Icons.eco_outlined) return Icons.eco;
+    return icon;
+  }
+}
 
-        Container(
-          padding: const EdgeInsets.all(18),
+// ─── Stat Card ─────────────────────────────────────────────────────────────
+class _StatCard extends StatefulWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+
+  const _StatCard({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  @override
+  State<_StatCard> createState() => _StatCardState();
+}
+
+class _StatCardState extends State<_StatCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _scaleCtrl;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 120));
+    _scale = Tween<double>(begin: 1, end: 0.96).animate(_scaleCtrl);
+  }
+
+  @override
+  void dispose() {
+    _scaleCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _scaleCtrl.forward(),
+      onTapUp: (_) => _scaleCtrl.reverse(),
+      onTapCancel: () => _scaleCtrl.reverse(),
+      onTap: () => HapticFeedback.lightImpact(),
+      child: ScaleTransition(
+        scale: _scale,
+        child: Container(
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.deepTeal,
-            borderRadius: BorderRadius.circular(26),
+            color: _HomeColors.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _HomeColors.cardBorder),
             boxShadow: [
               BoxShadow(
-                color: AppColors.deepTeal.withOpacity(0.25),
-                blurRadius: 18,
-                offset: const Offset(0, 9),
+                color: _HomeColors.primaryContainer.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                height: 54,
-                width: 54,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.13),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Icon(
-                  Icons.qr_code_2_rounded,
-                  color: Colors.white,
-                  size: 30,
+              Icon(widget.icon, color: _HomeColors.primary, size: 22),
+              const SizedBox(height: 8),
+              Text(
+                widget.value,
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _HomeColors.primaryContainer,
                 ),
               ),
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  fontFamily: 'Hanken Grotesk',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.6,
+                  color: _HomeColors.outline,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-              const SizedBox(width: 14),
+// ─── Listing Card ─────────────────────────────────────────────────────────
+class _ListingCard extends StatefulWidget {
+  final String title;
+  final IconData statusIcon;
+  final String statusText;
+  final Color statusColor;
+  final String badgeText;
+  final Color badgeColor;
+  final Color badgeTextColor;
+  final String receiverName;
+  final String? receiverImageUrl;
+  final String points;
+  final bool dimBottom;
 
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pickup scheduled',
+  const _ListingCard({
+    required this.title,
+    required this.statusIcon,
+    required this.statusText,
+    required this.statusColor,
+    required this.badgeText,
+    required this.badgeColor,
+    required this.badgeTextColor,
+    required this.receiverName,
+    this.receiverImageUrl,
+    required this.points,
+    required this.dimBottom,
+  });
+
+  @override
+  State<_ListingCard> createState() => _ListingCardState();
+}
+
+class _ListingCardState extends State<_ListingCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 120));
+    _scale = Tween<double>(begin: 1, end: 0.97).animate(_ctrl);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _ctrl.forward(),
+      onTapUp: (_) => _ctrl.reverse(),
+      onTapCancel: () => _ctrl.reverse(),
+      onTap: () => HapticFeedback.lightImpact(),
+      child: ScaleTransition(
+        scale: _scale,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _HomeColors.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _HomeColors.cardBorder),
+            boxShadow: [
+              BoxShadow(
+                color: _HomeColors.primaryContainer.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Header row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.title,
+                          style: const TextStyle(
+                            fontFamily: 'Manrope',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: _HomeColors.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(widget.statusIcon,
+                                color: widget.statusColor, size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              widget.statusText,
+                              style: TextStyle(
+                                fontFamily: 'Manrope',
+                                fontSize: 13,
+                                color: widget.statusColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: widget.badgeColor,
+                      borderRadius: BorderRadius.circular(9999),
+                    ),
+                    child: Text(
+                      widget.badgeText,
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
+                        fontFamily: 'Hanken Grotesk',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                        color: widget.badgeTextColor,
                       ),
                     ),
-                    SizedBox(height: 4),
+                  ),
+                ],
+              ),
+              // Divider + footer
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Divider(
+                    height: 1, color: _HomeColors.surfaceVariant),
+              ),
+              const SizedBox(height: 12),
+              Opacity(
+                opacity: widget.dimBottom ? 0.6 : 1.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        if (widget.receiverImageUrl != null) ...[
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _HomeColors.surfaceContainer,
+                            ),
+                            child: ClipOval(
+                              child: Image.network(
+                                widget.receiverImageUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.person,
+                                    size: 16,
+                                    color: _HomeColors.outline),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          widget.receiverName,
+                          style: TextStyle(
+                            fontFamily: 'Manrope',
+                            fontSize: 13,
+                            fontStyle: widget.receiverImageUrl == null
+                                ? FontStyle.italic
+                                : FontStyle.normal,
+                            color: _HomeColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                     Text(
-                      'Hope Charity is arriving today',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
+                      widget.points,
+                      style: const TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: _HomeColors.onSecondaryContainer,
                       ),
                     ),
                   ],
                 ),
               ),
-
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.deepTeal,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-                child: const Text(
-                  'Code',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-              ),
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        color: AppColors.charcoal,
-        fontSize: 18,
-        fontWeight: FontWeight.w900,
-        letterSpacing: -0.2,
       ),
     );
   }
+}
 
-  Widget _buildBottomNavigation() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(26),
-          topRight: Radius.circular(26),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.charcoal.withOpacity(0.09),
-            blurRadius: 20,
-            offset: const Offset(0, -8),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: selectedIndex,
-        onTap: (index) {
-          if (index == 1) {
-            _goToPostMaterialScreen();
-            return;
-          }
+// ─── Nav Item Data ─────────────────────────────────────────────────────────
+class _NavItem {
+  final IconData icon;
+  final String label;
+  const _NavItem({required this.icon, required this.label});
+}
 
-          setState(() {
-            selectedIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        selectedItemColor: AppColors.primaryGreen,
-        unselectedItemColor: AppColors.charcoal.withOpacity(0.38),
-        selectedLabelStyle: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
+// ─── Floating Leaf ─────────────────────────────────────────────────────────
+class _FloatingLeaf extends StatefulWidget {
+  final double? top;
+  final double? left;
+  final double? right;
+  final double size;
+  final Color color;
+  final int duration;
+  final int delay;
+
+  const _FloatingLeaf({
+    this.top,
+    this.left,
+    this.right,
+    required this.size,
+    required this.color,
+    required this.duration,
+    required this.delay,
+  });
+
+  @override
+  State<_FloatingLeaf> createState() => _FloatingLeafState();
+}
+
+class _FloatingLeafState extends State<_FloatingLeaf>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _translateY;
+  late Animation<double> _rotate;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: widget.duration),
+    );
+    _translateY = Tween<double>(begin: 0, end: 120).animate(_ctrl);
+    _rotate = Tween<double>(begin: 0, end: 2 * pi).animate(_ctrl);
+
+    Future.delayed(Duration(seconds: widget.delay), () {
+      if (mounted) _ctrl.repeat();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: widget.top,
+      left: widget.left,
+      right: widget.right,
+      child: IgnorePointer(
+        child: AnimatedBuilder(
+          animation: _ctrl,
+          builder: (_, __) {
+            return Transform.translate(
+              offset: Offset(0, _translateY.value),
+              child: Transform.rotate(
+                angle: _rotate.value,
+                child: Icon(
+                  Icons.eco,
+                  size: widget.size,
+                  color: widget.color,
+                ),
+              ),
+            );
+          },
         ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-        ),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline_rounded),
-            label: 'Post',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt_rounded),
-            label: 'Listings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.insert_chart_outlined_rounded),
-            label: 'Impact',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }

@@ -22,6 +22,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
   final quantityController = TextEditingController(text: '10');
   final pickupTimeController =
   TextEditingController(text: 'Today before 8:00 PM');
+  final descriptionController = TextEditingController();
 
   String materialType = '';
   String condition = '';
@@ -36,6 +37,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
   void dispose() {
     quantityController.dispose();
     pickupTimeController.dispose();
+    descriptionController.dispose();
     super.dispose();
   }
 
@@ -85,13 +87,31 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
         expectedPoints = result.expectedPoints;
         generatedDescription = result.generatedDescription;
         impactEstimate = result.impactEstimate;
+
+        descriptionController.text = generatedDescription;
       });
     } catch (e) {
       setState(() {
         isAnalyzing = false;
+        analysisCompleted = true;
+
+        materialType = 'Surplus Food';
+        condition = 'Likely edible';
+        urgency = 'High urgency';
+        recoveryPath = 'Charity donation';
+        suggestedReceiver = 'Nearby charities / food recovery partners';
+        expectedPoints = '80 expected points';
+
+        generatedDescription =
+        'Around ${quantityController.text.trim().isEmpty ? '10' : quantityController.text.trim()} kg of surplus food is available for pickup. The material appears suitable for donation and should be collected as soon as possible. Best suited for nearby charities or food recovery organizations.';
+
+        impactEstimate =
+        'Estimated impact: ${quantityController.text.trim().isEmpty ? '10' : quantityController.text.trim()} kg diverted from landfill, around 20 meals supported, and 80 verified impact points after pickup confirmation.';
+
+        descriptionController.text = generatedDescription;
       });
 
-      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      _showMessage('AI service unavailable. Showing demo analysis.');
     }
   }
 
@@ -101,8 +121,11 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
       return;
     }
 
-    _showMessage('Material listing posted successfully');
-    Navigator.pop(context);
+    Navigator.pop(context, {
+      'posted': true,
+      'title': materialType,
+      'points': expectedPoints,
+    });
   }
 
   void _showMessage(String message) {
@@ -468,15 +491,40 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
 
   Widget _buildGeneratedDescriptionCard() {
     return _whiteCard(
-      title: 'Auto-Generated Listing',
-      icon: Icons.description_rounded,
-      child: Text(
-        generatedDescription,
+      title: 'Editable Listing Description',
+      icon: Icons.edit_note_rounded,
+      child: TextField(
+        controller: descriptionController,
+        maxLines: 6,
         style: TextStyle(
-          color: AppColors.charcoal.withOpacity(0.78),
+          color: AppColors.charcoal.withOpacity(0.82),
           fontSize: 14,
-          height: 1.55,
+          height: 1.5,
           fontWeight: FontWeight.w600,
+        ),
+        decoration: InputDecoration(
+          hintText: 'AI-generated description will appear here...',
+          hintStyle: TextStyle(
+            color: AppColors.charcoal.withOpacity(0.35),
+          ),
+          filled: true,
+          fillColor: AppColors.softBackground,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide(color: AppColors.mintBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide(color: AppColors.mintBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide(
+              color: AppColors.primaryGreen,
+              width: 1.4,
+            ),
+          ),
+          contentPadding: const EdgeInsets.all(14),
         ),
       ),
     );

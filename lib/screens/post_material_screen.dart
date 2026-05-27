@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../constants/app_colors.dart';
@@ -18,10 +19,11 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
 
   bool isAnalyzing = false;
   bool analysisCompleted = false;
+  bool uploadPressed = false;
+  bool descriptionFocused = false;
 
   final quantityController = TextEditingController(text: '10');
-  final pickupTimeController =
-  TextEditingController(text: 'Today before 8:00 PM');
+  final pickupTimeController = TextEditingController(text: 'Today before 8 PM');
   final descriptionController = TextEditingController();
 
   String materialType = '';
@@ -30,7 +32,6 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
   String recoveryPath = '';
   String suggestedReceiver = '';
   String expectedPoints = '';
-  String generatedDescription = '';
   String impactEstimate = '';
 
   @override
@@ -42,6 +43,8 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
   }
 
   Future<void> _pickImage() async {
+    HapticFeedback.mediumImpact();
+
     final picker = ImagePicker();
 
     final pickedImage = await picker.pickImage(
@@ -84,35 +87,42 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
         urgency = result.urgency;
         recoveryPath = result.recoveryPath;
         suggestedReceiver = result.suggestedReceiver;
-        expectedPoints = result.expectedPoints;
-        generatedDescription = result.generatedDescription;
+        expectedPoints = _pointsOnly(result.expectedPoints);
         impactEstimate = result.impactEstimate;
 
-        descriptionController.text = generatedDescription;
+        descriptionController.text = result.generatedDescription;
       });
     } catch (e) {
+      final quantity =
+      quantityController.text.trim().isEmpty ? '10' : quantityController.text.trim();
+
       setState(() {
         isAnalyzing = false;
         analysisCompleted = true;
 
         materialType = 'Surplus Food';
         condition = 'Likely edible';
-        urgency = 'High urgency';
+        urgency = 'High';
         recoveryPath = 'Charity donation';
-        suggestedReceiver = 'Nearby charities / food recovery partners';
-        expectedPoints = '80 expected points';
+        suggestedReceiver = 'Nearby charities';
+        expectedPoints = '80';
 
-        generatedDescription =
-        'Around ${quantityController.text.trim().isEmpty ? '10' : quantityController.text.trim()} kg of surplus food is available for pickup. The material appears suitable for donation and should be collected as soon as possible. Best suited for nearby charities or food recovery organizations.';
+        descriptionController.text =
+        'Around $quantity kg of surplus food is available for pickup today. '
+            'The material appears suitable for donation and should be collected as soon as possible. '
+            'Best suited for nearby charities or food recovery organizations.';
 
         impactEstimate =
-        'Estimated impact: ${quantityController.text.trim().isEmpty ? '10' : quantityController.text.trim()} kg diverted from landfill, around 20 meals supported, and 80 verified impact points after pickup confirmation.';
-
-        descriptionController.text = generatedDescription;
+        'Estimated impact: $quantity kg diverted from landfill, around 20 meals supported, and 80 verified impact points after pickup confirmation.';
       });
 
       _showMessage('AI service unavailable. Showing demo analysis.');
     }
+  }
+
+  String _pointsOnly(String value) {
+    final match = RegExp(r'\d+').firstMatch(value);
+    return match?.group(0) ?? value;
   }
 
   void _postListing() {
@@ -142,50 +152,74 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.softBackground,
-      appBar: AppBar(
-        backgroundColor: AppColors.softBackground,
-        elevation: 0,
-        foregroundColor: AppColors.charcoal,
-        title: const Text(
-          'AI Waste Assistant',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 32),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildIntroCard(),
-            const SizedBox(height: 22),
-            _buildUploadCard(),
-            const SizedBox(height: 18),
-            _buildDetailsInputs(),
-            const SizedBox(height: 18),
-            _buildAnalyzeButton(),
-            const SizedBox(height: 22),
-            if (isAnalyzing) _buildAnalyzingCard(),
-            if (analysisCompleted) ...[
-              _buildAiResultsCard(),
-              const SizedBox(height: 18),
-              _buildGeneratedDescriptionCard(),
-              const SizedBox(height: 18),
-              _buildImpactCard(),
-              const SizedBox(height: 24),
-              _buildPostButton(),
-            ],
+            _buildTopAppBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeroCard(),
+                    const SizedBox(height: 16),
+                    _buildUploadSection(),
+                    const SizedBox(height: 16),
+                    _buildInputGrid(),
+                    const SizedBox(height: 16),
+                    _buildAnalyzeButton(),
+                    const SizedBox(height: 16),
+                    if (isAnalyzing) _buildAnalyzingCard(),
+                    if (analysisCompleted) ...[
+                      _buildAIClassificationSection(),
+                      const SizedBox(height: 16),
+                      _buildEditableDescription(),
+                      const SizedBox(height: 16),
+                      _buildImpactEstimate(),
+                      const SizedBox(height: 16),
+                      _buildPostListingButton(),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildIntroCard() {
+  Widget _buildTopAppBar() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      color: AppColors.softBackground,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _TopIconButton(
+            icon: Icons.arrow_back_rounded,
+            onTap: () => Navigator.maybePop(context),
+          ),
+          Text(
+            'AI Waste Assistant',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryGreen,
+            ),
+          ),
+          _TopIconButton(
+            icon: Icons.auto_awesome_rounded,
+            onTap: () => HapticFeedback.lightImpact(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroCard() {
+    return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -195,126 +229,160 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.28),
-            blurRadius: 20,
-            offset: const Offset(0, 9),
+            color: AppColors.primaryGreen.withOpacity(0.25),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Row(
+      padding: const EdgeInsets.all(22),
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
         children: [
-          Container(
-            height: 54,
-            width: 54,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.16),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Icon(
-              Icons.auto_awesome_rounded,
-              color: Colors.white,
-              size: 30,
+          Positioned(
+            bottom: -45,
+            right: -45,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.white.withOpacity(0.10),
+              ),
             ),
           ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Post with AI',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 21,
-                    fontWeight: FontWeight.w900,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Post with AI',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.3,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Upload a photo and let AI classify, describe, and estimate impact',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        height: 1.45,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Upload a photo and let AI classify, describe, and estimate impact.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              const Icon(
+                Icons.auto_awesome_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildUploadCard() {
+  Widget _buildUploadSection() {
     return GestureDetector(
+      onTapDown: (_) => setState(() => uploadPressed = true),
+      onTapUp: (_) => setState(() => uploadPressed = false),
+      onTapCancel: () => setState(() => uploadPressed = false),
       onTap: _pickImage,
-      child: Container(
-        width: double.infinity,
-        height: 220,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: AppColors.mintBorder,
-            width: 1.4,
+            color: uploadPressed ? AppColors.primaryGreen : AppColors.mintBorder,
+            width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.charcoal.withOpacity(0.04),
-              blurRadius: 16,
-              offset: const Offset(0, 7),
+              color: AppColors.primaryGreen.withOpacity(0.08),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
-        child: selectedImage == null
-            ? Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              height: 66,
-              width: 66,
-              decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withOpacity(0.10),
-                borderRadius: BorderRadius.circular(22),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: selectedImage == null
+              ? CustomPaint(
+            painter: _DashedBorderPainter(
+              color: uploadPressed
+                  ? AppColors.primaryGreen
+                  : AppColors.mintBorder,
+              strokeWidth: 2,
+              dashLength: 8,
+              dashGap: 5,
+              radius: 18,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 34,
+                horizontal: 24,
               ),
-              child: Icon(
-                Icons.add_photo_alternate_rounded,
-                color: AppColors.primaryGreen,
-                size: 36,
+              child: Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: uploadPressed
+                          ? AppColors.primaryGreen.withOpacity(0.10)
+                          : AppColors.softBackground,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.add_a_photo_outlined,
+                      color: AppColors.primaryGreen,
+                      size: 29,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Upload Material Photo',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryGreen,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Food surplus, cardboard, plastic, or organic waste',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.charcoal.withOpacity(0.62),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 14),
-            Text(
-              'Upload Material Photo',
-              style: TextStyle(
-                color: AppColors.charcoal,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Food surplus, cardboard, plastic, or organic waste',
-              style: TextStyle(
-                color: AppColors.charcoal.withOpacity(0.55),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        )
-            : ClipRRect(
-          borderRadius: BorderRadius.circular(26),
-          child: Stack(
-            fit: StackFit.expand,
+          )
+              : Stack(
             children: [
               Image.file(
                 selectedImage!,
+                width: double.infinity,
+                height: 230,
                 fit: BoxFit.cover,
               ),
               Positioned(
@@ -326,7 +394,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
                     vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.45),
+                    color: Colors.black.withOpacity(0.48),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
@@ -346,108 +414,83 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
     );
   }
 
-  Widget _buildDetailsInputs() {
+  Widget _buildInputGrid() {
     return Row(
       children: [
         Expanded(
-          child: _smallInput(
+          child: _InfoTile(
+            icon: Icons.scale_outlined,
             label: 'Quantity',
-            controller: quantityController,
-            icon: Icons.scale_rounded,
-            suffix: 'kg',
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: quantityController,
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.charcoal,
+                    ),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+                Text(
+                  'kg',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.charcoal.withOpacity(0.60),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         Expanded(
-          child: _smallInput(
+          child: _InfoTile(
+            icon: Icons.schedule_outlined,
             label: 'Pickup Time',
-            controller: pickupTimeController,
-            icon: Icons.schedule_rounded,
+            child: TextField(
+              controller: pickupTimeController,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.charcoal,
+                height: 1.4,
+              ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _smallInput({
-    required String label,
-    required TextEditingController controller,
-    required IconData icon,
-    String? suffix,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.mintBorder),
-      ),
-      child: TextField(
-        controller: controller,
-        style: TextStyle(
-          color: AppColors.charcoal,
-          fontWeight: FontWeight.w700,
-        ),
-        decoration: InputDecoration(
-          labelText: label,
-          suffixText: suffix,
-          prefixIcon: Icon(
-            icon,
-            color: AppColors.deepTeal,
-            size: 22,
-          ),
-          border: InputBorder.none,
-          labelStyle: TextStyle(
-            color: AppColors.charcoal.withOpacity(0.55),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildAnalyzeButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton.icon(
-        onPressed: isAnalyzing ? null : _analyzeMaterial,
-        icon: isAnalyzing
-            ? const SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(
-            color: Colors.white,
-            strokeWidth: 2,
-          ),
-        )
-            : const Icon(Icons.auto_awesome_rounded),
-        label: Text(
-          isAnalyzing ? 'Analyzing Material...' : 'Analyze with AI',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryGreen,
-          foregroundColor: AppColors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-        ),
-      ),
+    return _PrimaryButton(
+      label: isAnalyzing ? 'Analyzing Material...' : 'Analyze with AI',
+      icon: Icons.auto_awesome_rounded,
+      isLoading: isAnalyzing,
+      onTap: isAnalyzing ? () {} : _analyzeMaterial,
     );
   }
 
   Widget _buildAnalyzingCard() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.mintBorder),
       ),
       child: Row(
@@ -456,14 +499,14 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
             color: AppColors.primaryGreen,
             strokeWidth: 3,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Text(
               'AI is classifying the material, checking condition, and estimating impact...',
               style: TextStyle(
                 color: AppColors.charcoal,
-                fontWeight: FontWeight.w700,
-                height: 1.35,
+                fontWeight: FontWeight.w600,
+                height: 1.4,
               ),
             ),
           ),
@@ -472,155 +515,324 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
     );
   }
 
-  Widget _buildAiResultsCard() {
-    return _whiteCard(
-      title: 'AI Classification',
-      icon: Icons.psychology_rounded,
-      child: Column(
-        children: [
-          _resultRow('Material Type', materialType),
-          _resultRow('Condition', condition),
-          _resultRow('Urgency', urgency),
-          _resultRow('Recovery Path', recoveryPath),
-          _resultRow('Suggested Receiver', suggestedReceiver),
-          _resultRow('Expected Points', expectedPoints),
-        ],
-      ),
-    );
-  }
+  Widget _buildAIClassificationSection() {
+    final rows = [
+      _ClassificationRow('Material Type', materialType, isError: false),
+      _ClassificationRow('Condition', condition, isError: false),
+      _ClassificationRow('Urgency', urgency, isError: urgency.toLowerCase().contains('high')),
+      _ClassificationRow('Recovery Path', recoveryPath, isError: false),
+      _ClassificationRow('Suggested Receiver', suggestedReceiver, isError: false),
+    ];
 
-  Widget _buildGeneratedDescriptionCard() {
-    return _whiteCard(
-      title: 'Editable Listing Description',
-      icon: Icons.edit_note_rounded,
-      child: TextField(
-        controller: descriptionController,
-        maxLines: 6,
-        style: TextStyle(
-          color: AppColors.charcoal.withOpacity(0.82),
-          fontSize: 14,
-          height: 1.5,
-          fontWeight: FontWeight.w600,
-        ),
-        decoration: InputDecoration(
-          hintText: 'AI-generated description will appear here...',
-          hintStyle: TextStyle(
-            color: AppColors.charcoal.withOpacity(0.35),
-          ),
-          filled: true,
-          fillColor: AppColors.softBackground,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
-            borderSide: BorderSide(color: AppColors.mintBorder),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
-            borderSide: BorderSide(color: AppColors.mintBorder),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
-            borderSide: BorderSide(
-              color: AppColors.primaryGreen,
-              width: 1.4,
-            ),
-          ),
-          contentPadding: const EdgeInsets.all(14),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImpactCard() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.deepTeal,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.deepTeal.withOpacity(0.23),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            height: 52,
-            width: 52,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.14),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Icon(
-              Icons.eco_rounded,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              impactEstimate,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13.5,
-                height: 1.45,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 58,
-      child: ElevatedButton.icon(
-        onPressed: _postListing,
-        icon: const Icon(Icons.publish_rounded),
-        label: const Text(
-          'Post Listing',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryGreen,
-          foregroundColor: AppColors.white,
-          elevation: 12,
-          shadowColor: AppColors.primaryGreen.withOpacity(0.35),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _whiteCard({
-    required String title,
-    required IconData icon,
-    required Widget child,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.mintBorder),
         boxShadow: [
           BoxShadow(
-            color: AppColors.charcoal.withOpacity(0.04),
+            color: AppColors.primaryGreen.withOpacity(0.08),
             blurRadius: 14,
-            offset: const Offset(0, 7),
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'AI Classification',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryGreen,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'VERIFIED',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.6,
+                    color: AppColors.primaryGreen,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...rows.map(_buildClassificationRow).toList(),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Expected Points',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.charcoal.withOpacity(0.64),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      expectedPoints,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryGreen,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.eco_rounded,
+                      color: AppColors.primaryGreen,
+                      size: 18,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClassificationRow(_ClassificationRow row) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                row.label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.charcoal.withOpacity(0.64),
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  row.value,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: row.isError ? Colors.redAccent : AppColors.charcoal,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Divider(
+          height: 1,
+          color: AppColors.mintBorder.withOpacity(0.65),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditableDescription() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'EDITABLE LISTING DESCRIPTION',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.6,
+            color: AppColors.charcoal.withOpacity(0.62),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Focus(
+          onFocusChange: (hasFocus) {
+            setState(() {
+              descriptionFocused = hasFocus;
+            });
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: descriptionFocused
+                    ? AppColors.primaryGreen
+                    : AppColors.mintBorder,
+                width: descriptionFocused ? 1.5 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryGreen.withOpacity(0.08),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: descriptionController,
+              maxLines: 4,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.charcoal,
+                height: 1.5,
+              ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImpactEstimate() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.brightTeal.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.mintBorder),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.brightTeal.withOpacity(0.18),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.eco_rounded,
+              color: AppColors.deepTeal,
+              size: 23,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.deepTeal,
+                  height: 1.5,
+                ),
+                children: [
+                  const TextSpan(
+                    text: 'Estimated impact: ',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  TextSpan(text: impactEstimate.replaceFirst('Estimated impact: ', '')),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostListingButton() {
+    return _PrimaryButton(
+      label: 'Post Listing',
+      icon: Icons.publish_rounded,
+      extraShadow: true,
+      onTap: _postListing,
+    );
+  }
+}
+
+class _TopIconButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _TopIconButton({
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  State<_TopIconButton> createState() => _TopIconButtonState();
+}
+
+class _TopIconButtonState extends State<_TopIconButton> {
+  bool pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => pressed = true),
+      onTapUp: (_) {
+        setState(() => pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => pressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: pressed ? AppColors.mintBorder.withOpacity(0.55) : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Icon(
+          widget.icon,
+          color: AppColors.primaryGreen,
+          size: 24,
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Widget child;
+
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.mintBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryGreen.withOpacity(0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -629,67 +841,186 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
         children: [
           Row(
             children: [
-              Container(
-                height: 40,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.10),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  icon,
-                  color: AppColors.primaryGreen,
-                  size: 23,
-                ),
+              Icon(
+                icon,
+                color: AppColors.brightTeal,
+                size: 20,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 5),
               Text(
-                title,
+                label,
                 style: TextStyle(
-                  color: AppColors.charcoal,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                  color: AppColors.charcoal.withOpacity(0.62),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           child,
         ],
       ),
     );
   }
+}
 
-  Widget _resultRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 11),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 38,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: AppColors.charcoal.withOpacity(0.55),
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-              ),
+class _PrimaryButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool extraShadow;
+  final bool isLoading;
+
+  const _PrimaryButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.extraShadow = false,
+    this.isLoading = false,
+  });
+
+  @override
+  State<_PrimaryButton> createState() => _PrimaryButtonState();
+}
+
+class _PrimaryButtonState extends State<_PrimaryButton> {
+  bool pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: widget.isLoading ? null : (_) => setState(() => pressed = true),
+      onTapUp: widget.isLoading
+          ? null
+          : (_) {
+        setState(() => pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: widget.isLoading ? null : () => setState(() => pressed = false),
+      child: AnimatedScale(
+        scale: pressed ? 0.98 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: AnimatedOpacity(
+          opacity: pressed ? 0.88 : 1.0,
+          duration: const Duration(milliseconds: 80),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: AppColors.primaryGreen,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryGreen.withOpacity(0.10),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+                if (widget.extraShadow)
+                  BoxShadow(
+                    color: AppColors.primaryGreen.withOpacity(0.20),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.isLoading)
+                  const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                else
+                  Icon(widget.icon, color: Colors.white, size: 20),
+                const SizedBox(width: 6),
+                Text(
+                  widget.label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
-          Expanded(
-            flex: 62,
-            child: Text(
-              value,
-              style: TextStyle(
-                color: AppColors.charcoal,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
+  }
+}
+
+class _ClassificationRow {
+  final String label;
+  final String value;
+  final bool isError;
+
+  const _ClassificationRow(
+      this.label,
+      this.value, {
+        required this.isError,
+      });
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double dashLength;
+  final double dashGap;
+  final double radius;
+
+  const _DashedBorderPainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.dashLength,
+    required this.dashGap,
+    required this.radius,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(
+            strokeWidth / 2,
+            strokeWidth / 2,
+            size.width - strokeWidth,
+            size.height - strokeWidth,
+          ),
+          Radius.circular(radius),
+        ),
+      );
+
+    final pathMetrics = path.computeMetrics();
+
+    for (final pathMetric in pathMetrics) {
+      double distance = 0;
+
+      while (distance < pathMetric.length) {
+        canvas.drawPath(
+          pathMetric.extractPath(distance, distance + dashLength),
+          paint,
+        );
+
+        distance += dashLength + dashGap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }

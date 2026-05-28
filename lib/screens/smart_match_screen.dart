@@ -565,7 +565,7 @@ class SmartMatchScreen extends StatelessWidget {
               HapticFeedback.mediumImpact();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('$receiverName request accepted. Pickup scheduled.'),
+                  content: Text('$receiverName Offer sent. Waiting for Response.'),
                   behavior: SnackBarBehavior.floating,
                   backgroundColor: AppColors.deepTeal,
                 ),
@@ -582,7 +582,7 @@ class SmartMatchScreen extends StatelessWidget {
               ),
             ),
             child: const Text(
-              'Accept Match',
+              'Send Offer',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
               ),

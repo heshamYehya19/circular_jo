@@ -375,7 +375,21 @@ class _ListingsScreenState extends State<ListingsScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      _showSmartMatchSheet(title, receiver, distance);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SmartMatchScreen(
+                            materialTitle: title,
+                            materialType: category,
+                            receiverName: receiver == 'No receiver yet'
+                                ? 'Amman Recycling Co.'
+                                : receiver,
+                            distance: distance,
+                            pickupTime: pickupTime,
+                            points: points,
+                          ),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.auto_awesome_rounded, size: 18),
                     label: const Text('Smart Match'),

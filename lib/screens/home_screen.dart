@@ -6,9 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'post_material_screen.dart';
+import '../constants/theme_controller.dart';
 
 // ─── Color Tokens ────────────────────────────────────────────────────────────
 class _HomeColors {
+  static bool isDark = false;
+
   static const primary = Color(0xFF00683C);
   static const primaryContainer = Color(0xFF18834F);
   static const onPrimaryContainer = Color(0xFFE9FFEC);
@@ -16,22 +19,46 @@ class _HomeColors {
   static const secondaryContainer = Color(0xFF9BEFE0);
   static const onSecondaryContainer = Color(0xFF066F63);
   static const tertiary = Color(0xFF00665C);
-  static const surface = Color(0xFFF3FAFF);
-  static const surfaceContainerLowest = Color(0xFFFFFFFF);
-  static const surfaceContainerLow = Color(0xFFECF5FA);
-  static const surfaceContainerHigh = Color(0xFFE0EAEF);
-  static const surfaceContainer = Color(0xFFE6EFF5);
-  static const surfaceVariant = Color(0xFFDAE4E9);
-  static const onSurface = Color(0xFF141D21);
-  static const onSurfaceVariant = Color(0xFF3E4941);
-  static const outline = Color(0xFF6E7A70);
-  static const outlineVariant = Color(0xFFBECABE);
   static const error = Color(0xFFBA1A1A);
   static const errorContainer = Color(0xFFFFDAD6);
   static const onErrorContainer = Color(0xFF93000A);
   static const teal066 = Color(0xFF066F63);
-  static const cardBorder = Color(0xFFD4E5DE);
-  static const background = Color(0xFFF4F8F6);
+
+  static Color get background =>
+      isDark ? const Color(0xFF071814) : const Color(0xFFF4F8F6);
+
+  static Color get surface =>
+      isDark ? const Color(0xFF10231E) : const Color(0xFFF3FAFF);
+
+  static Color get surfaceContainerLowest =>
+      isDark ? const Color(0xFF142B25) : const Color(0xFFFFFFFF);
+
+  static Color get surfaceContainerLow =>
+      isDark ? const Color(0xFF18352D) : const Color(0xFFECF5FA);
+
+  static Color get surfaceContainerHigh =>
+      isDark ? const Color(0xFF1B3B32) : const Color(0xFFE0EAEF);
+
+  static Color get surfaceContainer =>
+      isDark ? const Color(0xFF10231E) : const Color(0xFFE6EFF5);
+
+  static Color get surfaceVariant =>
+      isDark ? const Color(0xFF24433A) : const Color(0xFFDAE4E9);
+
+  static Color get onSurface =>
+      isDark ? const Color(0xFFEAF5F0) : const Color(0xFF141D21);
+
+  static Color get onSurfaceVariant =>
+      isDark ? const Color(0xFFA9BDB4) : const Color(0xFF3E4941);
+
+  static Color get outline =>
+      isDark ? const Color(0xFF7FA295) : const Color(0xFF6E7A70);
+
+  static Color get outlineVariant =>
+      isDark ? const Color(0xFF24433A) : const Color(0xFFBECABE);
+
+  static Color get cardBorder =>
+      isDark ? const Color(0xFF24433A) : const Color(0xFFD4E5DE);
 }
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
@@ -159,6 +186,8 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    _HomeColors.isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: _HomeColors.background,
       body: SafeArea(
@@ -246,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: Image.network(
                 'https://lh3.googleusercontent.com/aida-public/AB6AXuDqm8e5NszwOHEmC9FlF337ngGkViuYGXPKA7nHRl4EovjMVHlgJ2AKJ59oo0is6waaCrueMmkyqsBA5miK_tVhKrhWs8VOR28WRbtgwJJh-HCwuThFjWd70jszrTUkUWrIY_mzBUchHsuM5wuiSZ0-C1nvsnvPIKA7Yv06_RNuhMy4nVEGtXZJobEuRYnEQ4fMAusw_WiP_jB3UbyFU8C29n904H8goGOAGf-0kzUMuoKnfNSeoFYeTjrTwZ0_X_0jqmYGbhuiZq8',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(Icons.store, color: _HomeColors.primary),
+                errorBuilder: (_, __, ___) => Icon(Icons.store, color: _HomeColors.primary),
               ),
             ),
           ),
@@ -266,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen>
                     color: _HomeColors.onSurfaceVariant.withOpacity(0.7),
                   ),
                 ),
-                const Text(
+                Text(
                   'Green Bites Restaurant',
                   style: TextStyle(
                     fontFamily: 'Manrope',
@@ -284,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen>
                     color: _HomeColors.secondaryContainer,
                     borderRadius: BorderRadius.circular(9999),
                   ),
-                  child: const Text(
+                  child: Text(
                     'SILVER IMPACT PARTNER',
                     style: TextStyle(
                       fontFamily: 'Hanken Grotesk',
@@ -298,6 +327,13 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
+          IconButton(
+            onPressed: ThemeController.toggleTheme,
+            icon: Icon(
+              Icons.dark_mode_rounded,
+              color: AppColors.primaryGreen,
+            ),
+          ),
           // Notification bell
           GestureDetector(
             onTap: () {},
@@ -307,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const Icon(Icons.notifications_outlined,
+                  Icon(Icons.notifications_outlined,
                       color: _HomeColors.onSurface),
                   Positioned(
                     top: 8,
@@ -330,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen>
                             Container(
                               width: 8,
                               height: 8,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 color: _HomeColors.error,
                                 shape: BoxShape.circle,
                               ),
@@ -354,7 +390,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Today's Recovery Impact",
           style: TextStyle(
             fontFamily: 'Manrope',
@@ -462,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen>
                             color: Colors.white.withOpacity(0.2),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.photo_camera,
+                          child: Icon(Icons.photo_camera,
                               color: Colors.white, size: 26),
                         ),
                         const SizedBox(width: 16),
@@ -491,7 +527,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ],
                           ),
                         ),
-                        const Icon(Icons.arrow_forward, color: Colors.white),
+                        Icon(Icons.arrow_forward, color: Colors.white),
                       ],
                     ),
                   ),
@@ -512,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Incoming Request',
               style: TextStyle(
                 fontFamily: 'Manrope',
@@ -521,7 +557,7 @@ class _HomeScreenState extends State<HomeScreen>
                 color: _HomeColors.onSurface,
               ),
             ),
-            const Text(
+            Text(
               'View All',
               style: TextStyle(
                 fontFamily: 'Hanken Grotesk',
@@ -565,7 +601,7 @@ class _HomeScreenState extends State<HomeScreen>
                         'https://lh3.googleusercontent.com/aida-public/AB6AXuDTkD-xwQAxs9IVkPKQ4ztcvocsOnxbJ8k1SiB1PcyU5X7YXorfXqPcR0PKsPvSsatjSPf4J9Ihe6Z4GJnWY9Wa-92QHOVhYLKfrs1WtKsajM7wm4zNV-eHxuIiBjVjhIr-0uvvUkmQb5UDeb8T-WJositdu8cN5a8Iv5SsoSbjpJlRiZr7EVk1x0WSsurxVZvmQYZ20fdOVp8xCZnGElVUj1ZvQJvTtkjNb06SRr-FDthvyZThejMC4UGKPBmGu0nbVz2KoL6yNKM',
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) =>
-                        const Icon(Icons.volunteer_activism, color: _HomeColors.primary),
+                            Icon(Icons.volunteer_activism, color: _HomeColors.primary),
                       ),
                     ),
                   ),
@@ -574,7 +610,7 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Hope Charity requested surplus food',
                           style: TextStyle(
                             fontFamily: 'Manrope',
@@ -605,13 +641,13 @@ class _HomeScreenState extends State<HomeScreen>
                     child: OutlinedButton(
                       onPressed: () => HapticFeedback.lightImpact(),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: _HomeColors.error, width: 2),
+                        side: BorderSide(color: _HomeColors.error, width: 2),
                         foregroundColor: _HomeColors.error,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Reject',
                         style: TextStyle(
                             fontFamily: 'Hanken Grotesk',
@@ -631,7 +667,7 @@ class _HomeScreenState extends State<HomeScreen>
                             borderRadius: BorderRadius.circular(10)),
                         elevation: 0,
                       ),
-                      child: const Text(
+                      child: Text(
                         'Accept',
                         style: TextStyle(
                             fontFamily: 'Hanken Grotesk',
@@ -653,7 +689,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Active Listings',
           style: TextStyle(
             fontFamily: 'Manrope',
@@ -740,7 +776,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Pickup scheduled',
                     style: TextStyle(
                       fontFamily: 'Manrope',
@@ -771,7 +807,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.qr_code_2, color: Colors.white, size: 20),
                           SizedBox(width: 8),
                           Text(
@@ -950,7 +986,7 @@ class _StatCardState extends State<_StatCard>
               const SizedBox(height: 8),
               Text(
                 widget.value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Manrope',
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -959,7 +995,7 @@ class _StatCardState extends State<_StatCard>
               ),
               Text(
                 widget.label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Hanken Grotesk',
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -1061,7 +1097,7 @@ class _ListingCardState extends State<_ListingCard>
                       children: [
                         Text(
                           widget.title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Manrope',
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -1125,7 +1161,7 @@ class _ListingCardState extends State<_ListingCard>
                           Container(
                             width: 24,
                             height: 24,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: _HomeColors.surfaceContainer,
                             ),
@@ -1133,7 +1169,7 @@ class _ListingCardState extends State<_ListingCard>
                               child: Image.network(
                                 widget.receiverImageUrl!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(
+                                errorBuilder: (_, __, ___) => Icon(
                                     Icons.person,
                                     size: 16,
                                     color: _HomeColors.outline),
@@ -1157,7 +1193,7 @@ class _ListingCardState extends State<_ListingCard>
                     ),
                     Text(
                       widget.points,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Manrope',
                         fontSize: 13,
                         fontWeight: FontWeight.w700,

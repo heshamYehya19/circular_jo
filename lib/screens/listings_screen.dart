@@ -5,6 +5,8 @@ import '../constants/app_colors.dart';
 
 import 'smart_match_screen.dart';
 
+import 'pickup_verification_screen.dart';
+
 class ListingsScreen extends StatefulWidget {
   const ListingsScreen({super.key});
 
@@ -437,6 +439,18 @@ class _ListingsScreenState extends State<ListingsScreen> {
                     onPressed: () {
                       HapticFeedback.mediumImpact();
                       _showPickupCodeSheet();
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PickupVerificationScreen(
+                            materialTitle: title,
+                            receiverName: receiver,
+                            pickupTime: pickupTime,
+                            points: points,
+                          ),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.qr_code_2_rounded, size: 18),
                     label: const Text('Code'),

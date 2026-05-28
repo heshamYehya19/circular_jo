@@ -14,6 +14,8 @@ class ListingsScreen extends StatefulWidget {
 
 class _ListingsScreenState extends State<ListingsScreen> {
   int selectedFilter = 0;
+  bool cardboardOfferSent = false;
+  bool organicOfferSent = false;
 
   final filters = [
     'All',
@@ -77,23 +79,23 @@ class _ListingsScreenState extends State<ListingsScreen> {
             _buildListingCard(
               title: 'Cardboard Boxes',
               category: 'Recyclable Material',
-              status: 'Waiting for receiver',
-              receiver: 'No receiver yet',
+              status: cardboardOfferSent ? 'Offer sent' : 'Waiting for receiver',
+              receiver: cardboardOfferSent ? 'Amman Recycling Co.' : 'No receiver yet',
               pickupTime: 'Flexible pickup',
               distance: 'Nearby recyclers',
               points: '45',
               urgency: 'Flexible',
               urgencyColor: AppColors.brightTeal,
               icon: Icons.inventory_2_rounded,
-              progressStep: 1,
-              showMatchButton: true,
+              progressStep: cardboardOfferSent ? 2 : 1,
+              showMatchButton: !cardboardOfferSent,
               showCodeButton: false,
             ),
             const SizedBox(height: 16),
             _buildListingCard(
               title: 'Organic Vegetable Waste',
               category: 'Organic Waste',
-              status: 'Match found',
+              status: organicOfferSent ? 'Offer sent' : 'Match found',
               receiver: 'Amman Compost Hub',
               pickupTime: 'Tomorrow, 10:00 AM',
               distance: '4.1 km away',
@@ -101,8 +103,8 @@ class _ListingsScreenState extends State<ListingsScreen> {
               urgency: 'Medium',
               urgencyColor: AppColors.freshGreen,
               icon: Icons.eco_rounded,
-              progressStep: 2,
-              showMatchButton: true,
+              progressStep: organicOfferSent ? 3 : 2,
+              showMatchButton: !organicOfferSent,
               showCodeButton: false,
             ),
           ],
@@ -373,9 +375,10 @@ class _ListingsScreenState extends State<ListingsScreen> {
               if (showMatchButton)
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       HapticFeedback.lightImpact();
-                      Navigator.push(
+
+                      final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => SmartMatchScreen(
@@ -390,6 +393,28 @@ class _ListingsScreenState extends State<ListingsScreen> {
                           ),
                         ),
                       );
+
+                      if (!mounted) return;
+
+                      if (result is Map && result['offerSent'] == true) {
+                        setState(() {
+                          if (title == 'Cardboard Boxes') {
+                            cardboardOfferSent = true;
+                          }
+
+                          if (title == 'Organic Vegetable Waste') {
+                            organicOfferSent = true;
+                          }
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Offer sent to ${result['receiverName']}. Listing updated.'),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: AppColors.deepTeal,
+                          ),
+                        );
+                      }
                     },
                     icon: const Icon(Icons.auto_awesome_rounded, size: 18),
                     label: const Text('Smart Match'),
@@ -552,6 +577,9 @@ class _ListingsScreenState extends State<ListingsScreen> {
     }
     if (status.toLowerCase().contains('match')) {
       return AppColors.brightTeal;
+    }
+    if (status.toLowerCase().contains('offer')) {
+      return AppColors.freshGreen;
     }
     return AppColors.primaryGreen;
   }

@@ -563,6 +563,7 @@ class SmartMatchScreen extends StatelessWidget {
           child: ElevatedButton(
             onPressed: () {
               HapticFeedback.mediumImpact();
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('$receiverName Offer sent. Waiting for Response.'),
@@ -570,7 +571,11 @@ class SmartMatchScreen extends StatelessWidget {
                   backgroundColor: AppColors.deepTeal,
                 ),
               );
-              Navigator.pop(context);
+
+              Navigator.pop(context, {
+                'offerSent': true,
+                'receiverName': receiverName,
+              });
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryGreen,

@@ -438,7 +438,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       HapticFeedback.mediumImpact();
-                      _showPickupCodeSheet();
+
 
                       Navigator.push(
                         context,
@@ -691,89 +691,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  void _showPickupCodeSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: card,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(22, 18, 22, 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 5,
-                width: 48,
-                decoration: BoxDecoration(
-                  color: border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-              const SizedBox(height: 22),
-              Text(
-                'Pickup Verification Code',
-                style: TextStyle(
-                  color: text,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Share this code with the receiver when the pickup is handed over.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: muted,
-                  fontSize: 13.5,
-                  height: 1.45,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                width: 170,
-                height: 170,
-                decoration: BoxDecoration(
-                  color: surface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: border),
-                ),
-                child: Icon(
-                  Icons.qr_code_2_rounded,
-                  color: AppColors.deepTeal,
-                  size: 120,
-                ),
-              ),
-              const SizedBox(height: 18),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.11),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  'CJ-4829',
-                  style: TextStyle(
-                    color: AppColors.primaryGreen,
-                    fontSize: 22,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

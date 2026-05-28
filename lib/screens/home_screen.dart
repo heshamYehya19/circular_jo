@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:circular_jo/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'impact_record_screen.dart';
 import 'post_material_screen.dart';
 import '../constants/theme_controller.dart';
 
@@ -877,6 +877,15 @@ class _HomeScreenState extends State<HomeScreen>
                       context,
                       MaterialPageRoute(
                         builder: (_) => const ListingsScreen(),
+                      ),
+                    );
+                    return;
+                  }
+                  if (i == 3) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ImpactRecordScreen(),
                       ),
                     );
                     return;

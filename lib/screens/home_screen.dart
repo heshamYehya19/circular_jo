@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'post_material_screen.dart';
 import '../constants/theme_controller.dart';
 
+import 'listings_screen.dart';
+
 // ─── Color Tokens ────────────────────────────────────────────────────────────
 class _HomeColors {
   static bool isDark = false;
@@ -867,6 +869,16 @@ class _HomeScreenState extends State<HomeScreen>
 
                   if (i == 1) {
                     _goToPostMaterialScreen();
+                    return;
+                  }
+
+                  if (i == 2) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ListingsScreen(),
+                      ),
+                    );
                     return;
                   }
 

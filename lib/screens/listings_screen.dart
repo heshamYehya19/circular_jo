@@ -552,7 +552,13 @@ class _ListingsScreenState extends State<ListingsScreen> {
 
                       if (result != null && result is Map && result['verified'] == true) {
                         DemoAppState.markPickupVerified(id);
-                        _showMessage('Pickup verified. Impact record updated.');
+
+                        DemoAppState.addVerifiedImpact(
+                          materialTitle: title,
+                          points: points,
+                        );
+
+                        _showMessage('Pickup verified. Impact dashboard updated.');
                       }
                     },
                     icon: const Icon(Icons.qr_code_2_rounded, size: 18),

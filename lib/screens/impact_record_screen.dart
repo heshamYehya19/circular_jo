@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../constants/app_colors.dart';
 
+import '../data/demo_app_state.dart';
+
 class ImpactRecordScreen extends StatefulWidget {
   const ImpactRecordScreen({super.key});
 
@@ -30,15 +32,15 @@ class _ImpactRecordScreenState extends State<ImpactRecordScreen>
       isDark ? const Color(0xFFA9BDB4) : AppColors.charcoal.withOpacity(0.60);
   Color get border => isDark ? const Color(0xFF24433A) : AppColors.mintBorder;
 
-  Map<String, dynamic> get dashboardData {
+  Map<String, dynamic> dashboardDataFromStats(DemoImpactStats stats) {
     switch (selectedRangeIndex) {
       case 0:
         return {
-          'waste': 184,
-          'points': 1260,
-          'pickups': 11,
-          'meals': 390,
-          'co2': 92,
+          'waste': (stats.wasteKg * 0.15).round(),
+          'points': (stats.points * 0.15).round(),
+          'pickups': (stats.verifiedPickups * 0.15).round(),
+          'meals': (stats.mealsSupported * 0.15).round(),
+          'co2': (stats.co2Avoided * 0.15).round(),
           'goalProgress': 0.64,
           'goalLabel': '64% to Gold',
           'bars': [28, 36, 18, 44, 32, 54, 46],
@@ -49,13 +51,14 @@ class _ImpactRecordScreenState extends State<ImpactRecordScreen>
             {'name': 'Plastic', 'value': 0.14, 'color': const Color(0xFF7A9EEC)},
           ],
         };
+
       case 2:
         return {
-          'waste': 3580,
-          'points': 21840,
-          'pickups': 182,
-          'meals': 7040,
-          'co2': 1690,
+          'waste': (stats.wasteKg * 2.8).round(),
+          'points': (stats.points * 2.5).round(),
+          'pickups': (stats.verifiedPickups * 2.4).round(),
+          'meals': (stats.mealsSupported * 2.8).round(),
+          'co2': (stats.co2Avoided * 2.7).round(),
           'goalProgress': 0.86,
           'goalLabel': '86% to Gold',
           'bars': [48, 62, 58, 74, 69, 82, 76],
@@ -66,13 +69,14 @@ class _ImpactRecordScreenState extends State<ImpactRecordScreen>
             {'name': 'Plastic', 'value': 0.14, 'color': const Color(0xFF7A9EEC)},
           ],
         };
+
       default:
         return {
-          'waste': 1240,
-          'points': 8650,
-          'pickups': 74,
-          'meals': 2480,
-          'co2': 620,
+          'waste': stats.wasteKg,
+          'points': stats.points,
+          'pickups': stats.verifiedPickups,
+          'meals': stats.mealsSupported,
+          'co2': stats.co2Avoided,
           'goalProgress': 0.72,
           'goalLabel': '72% to Gold',
           'bars': [24, 34, 28, 42, 39, 51, 47],
@@ -123,7 +127,10 @@ class _ImpactRecordScreenState extends State<ImpactRecordScreen>
 
   @override
   Widget build(BuildContext context) {
-    final data = dashboardData;
+  return ValueListenableBuilder<DemoImpactStats>(
+  valueListenable: DemoAppState.impactStats,
+  builder: (context, stats, _) {
+  final data = dashboardDataFromStats(stats);
 
     return Scaffold(
       backgroundColor: bg,
@@ -169,6 +176,8 @@ class _ImpactRecordScreenState extends State<ImpactRecordScreen>
         ),
       ),
     );
+  },
+  );
   }
 
   Widget _buildHeroSection(Map<String, dynamic> data) {

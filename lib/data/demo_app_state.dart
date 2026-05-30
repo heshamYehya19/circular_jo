@@ -59,8 +59,48 @@ class DemoListing {
     );
   }
 }
+class DemoImpactStats {
+  final int wasteKg;
+  final int points;
+  final int verifiedPickups;
+  final int mealsSupported;
+  final int co2Avoided;
 
+  const DemoImpactStats({
+    required this.wasteKg,
+    required this.points,
+    required this.verifiedPickups,
+    required this.mealsSupported,
+    required this.co2Avoided,
+  });
+
+  DemoImpactStats copyWith({
+    int? wasteKg,
+    int? points,
+    int? verifiedPickups,
+    int? mealsSupported,
+    int? co2Avoided,
+  }) {
+    return DemoImpactStats(
+      wasteKg: wasteKg ?? this.wasteKg,
+      points: points ?? this.points,
+      verifiedPickups: verifiedPickups ?? this.verifiedPickups,
+      mealsSupported: mealsSupported ?? this.mealsSupported,
+      co2Avoided: co2Avoided ?? this.co2Avoided,
+    );
+  }
+}
 class DemoAppState {
+  static final ValueNotifier<DemoImpactStats> impactStats =
+  ValueNotifier<DemoImpactStats>(
+    const DemoImpactStats(
+      wasteKg: 1240,
+      points: 8650,
+      verifiedPickups: 74,
+      mealsSupported: 2480,
+      co2Avoided: 620,
+    ),
+  );
   static final ValueNotifier<List<DemoListing>> listings =
   ValueNotifier<List<DemoListing>>([
     DemoListing(
@@ -148,8 +188,8 @@ class DemoAppState {
         status: 'Offer sent',
         receiver: receiverName,
         distance: '2.4 km away',
-        progressStep: 3,
-        showCodeButton: false,
+        progressStep: 2,
+        showCodeButton: true,
       );
     }).toList();
   }
@@ -166,8 +206,45 @@ class DemoAppState {
       );
     }).toList();
   }
+  static void addVerifiedImpact({
+    required String materialTitle,
+    required String points,
+  }) {
+    final current = impactStats.value;
+
+    final extractedPoints = int.tryParse(
+      RegExp(r'\d+').firstMatch(points)?.group(0) ?? '0',
+    ) ??
+        0;
+
+    final extractedKg = int.tryParse(
+      RegExp(r'\d+').firstMatch(materialTitle)?.group(0) ?? '10',
+    ) ??
+        10;
+
+    final estimatedMeals = materialTitle.toLowerCase().contains('food')
+        ? extractedKg * 2
+        : 0;
+
+    final estimatedCo2 = (extractedKg * 0.5).round();
+
+    impactStats.value = current.copyWith(
+      wasteKg: current.wasteKg + extractedKg,
+      points: current.points + extractedPoints,
+      verifiedPickups: current.verifiedPickups + 1,
+      mealsSupported: current.mealsSupported + estimatedMeals,
+      co2Avoided: current.co2Avoided + estimatedCo2,
+    );
+  }
 
   static void resetDemo() {
+    impactStats.value = const DemoImpactStats(
+      wasteKg: 1240,
+      points: 8650,
+      verifiedPickups: 74,
+      mealsSupported: 2480,
+      co2Avoided: 620,
+    );
     listings.value = [
       DemoListing(
         id: 'food-demo',

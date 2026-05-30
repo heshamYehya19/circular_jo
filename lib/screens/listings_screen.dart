@@ -7,6 +7,8 @@ import 'smart_match_screen.dart';
 
 import 'pickup_verification_screen.dart';
 
+import '../data/demo_app_state.dart';
+
 class ListingsScreen extends StatefulWidget {
   const ListingsScreen({super.key});
 
@@ -37,6 +39,48 @@ class _ListingsScreenState extends State<ListingsScreen> {
       isDark ? const Color(0xFFA9BDB4) : AppColors.charcoal.withOpacity(0.58);
   Color get border => isDark ? const Color(0xFF24433A) : AppColors.mintBorder;
 
+  Color _urgencyColor(String urgency) {
+    final lower = urgency.toLowerCase();
+
+    if (lower.contains('high')) {
+      return Colors.orangeAccent;
+    }
+
+    if (lower.contains('medium')) {
+      return AppColors.freshGreen;
+    }
+
+    if (lower.contains('flexible') || lower.contains('low')) {
+      return AppColors.brightTeal;
+    }
+
+    return AppColors.primaryGreen;
+  }
+
+  String _recommendedReceiver(String category) {
+    final lower = category.toLowerCase();
+
+    if (lower.contains('food') || lower.contains('surplus')) {
+      return 'Hope Charity';
+    }
+
+    if (lower.contains('organic') || lower.contains('compost')) {
+      return 'Amman Compost Hub';
+    }
+
+    return 'Amman Recycling Co.';
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.deepTeal,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,52 +106,91 @@ class _ListingsScreenState extends State<ListingsScreen> {
             const SizedBox(height: 18),
             _buildFilterChips(),
             const SizedBox(height: 20),
-            _buildListingCard(
-              title: '10 kg Surplus Food',
-              category: 'Surplus Food',
-              status: 'Pickup accepted',
-              receiver: 'Hope Charity',
-              pickupTime: 'Today, 6:00 PM',
-              distance: '2.4 km away',
-              points: '80',
-              urgency: 'High urgency',
-              urgencyColor: Colors.orangeAccent,
-              icon: Icons.restaurant_rounded,
-              progressStep: 3,
-              showMatchButton: true,
-              showCodeButton: true,
+            ValueListenableBuilder<List<DemoListing>>(
+              valueListenable: DemoAppState.listings,
+              builder: (context, listings, _) {
+                return Column(
+                  children: listings.map((listing) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildListingCard(
+                        id: listing.id,
+                        title: listing.title,
+                        category: listing.category,
+                        status: listing.status,
+                        receiver: listing.receiver,
+                        pickupTime: listing.pickupTime,
+                        distance: listing.distance,
+                        points: listing.points,
+                        urgency: listing.urgency,
+                        urgencyColor: _urgencyColor(listing.urgency),
+                        icon: listing.icon,
+                        progressStep: listing.progressStep,
+                        showMatchButton: listing.showMatchButton,
+                        showCodeButton: listing.showCodeButton,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
             const SizedBox(height: 16),
-            _buildListingCard(
-              title: 'Cardboard Boxes',
-              category: 'Recyclable Material',
-              status: cardboardOfferSent ? 'Offer sent' : 'Waiting for receiver',
-              receiver: cardboardOfferSent ? 'Amman Recycling Co.' : 'No receiver yet',
-              pickupTime: 'Flexible pickup',
-              distance: 'Nearby recyclers',
-              points: '45',
-              urgency: 'Flexible',
-              urgencyColor: AppColors.brightTeal,
-              icon: Icons.inventory_2_rounded,
-              progressStep: cardboardOfferSent ? 2 : 1,
-              showMatchButton: !cardboardOfferSent,
-              showCodeButton: false,
+            ValueListenableBuilder<List<DemoListing>>(
+              valueListenable: DemoAppState.listings,
+              builder: (context, listings, _) {
+                return Column(
+                  children: listings.map((listing) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildListingCard(
+                        id: listing.id,
+                        title: listing.title,
+                        category: listing.category,
+                        status: listing.status,
+                        receiver: listing.receiver,
+                        pickupTime: listing.pickupTime,
+                        distance: listing.distance,
+                        points: listing.points,
+                        urgency: listing.urgency,
+                        urgencyColor: _urgencyColor(listing.urgency),
+                        icon: listing.icon,
+                        progressStep: listing.progressStep,
+                        showMatchButton: listing.showMatchButton,
+                        showCodeButton: listing.showCodeButton,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
             const SizedBox(height: 16),
-            _buildListingCard(
-              title: 'Organic Vegetable Waste',
-              category: 'Organic Waste',
-              status: organicOfferSent ? 'Offer sent' : 'Match found',
-              receiver: 'Amman Compost Hub',
-              pickupTime: 'Tomorrow, 10:00 AM',
-              distance: '4.1 km away',
-              points: '60',
-              urgency: 'Medium',
-              urgencyColor: AppColors.freshGreen,
-              icon: Icons.eco_rounded,
-              progressStep: organicOfferSent ? 3 : 2,
-              showMatchButton: !organicOfferSent,
-              showCodeButton: false,
+            ValueListenableBuilder<List<DemoListing>>(
+              valueListenable: DemoAppState.listings,
+              builder: (context, listings, _) {
+                return Column(
+                  children: listings.map((listing) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildListingCard(
+                        id: listing.id,
+                        title: listing.title,
+                        category: listing.category,
+                        status: listing.status,
+                        receiver: listing.receiver,
+                        pickupTime: listing.pickupTime,
+                        distance: listing.distance,
+                        points: listing.points,
+                        urgency: listing.urgency,
+                        urgencyColor: _urgencyColor(listing.urgency),
+                        icon: listing.icon,
+                        progressStep: listing.progressStep,
+                        showMatchButton: listing.showMatchButton,
+                        showCodeButton: listing.showCodeButton,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ],
         ),
@@ -227,6 +310,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
   }
 
   Widget _buildListingCard({
+    required String id,
     required String title,
     required String category,
     required String status,
@@ -387,14 +471,27 @@ class _ListingsScreenState extends State<ListingsScreen> {
                             materialTitle: title,
                             materialType: category,
                             receiverName: receiver == 'No receiver yet'
-                                ? 'Amman Recycling Co.'
+                                ? _recommendedReceiver(category)
                                 : receiver,
-                            distance: distance,
+                            distance: distance == 'Searching nearby partners'
+                                ? '2.4 km away'
+                                : distance,
                             pickupTime: pickupTime,
                             points: points,
                           ),
                         ),
                       );
+
+                      if (!mounted) return;
+
+                      if (result != null && result is Map && result['offerSent'] == true) {
+                        DemoAppState.markOfferSent(
+                          id,
+                          result['receiver']?.toString() ?? _recommendedReceiver(category),
+                        );
+
+                        _showMessage('Offer sent. Listing status updated.');
+                      }
 
                       if (!mounted) return;
 
@@ -436,11 +533,10 @@ class _ListingsScreenState extends State<ListingsScreen> {
               if (showCodeButton)
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       HapticFeedback.mediumImpact();
 
-
-                      Navigator.push(
+                      final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => PickupVerificationScreen(
@@ -451,6 +547,13 @@ class _ListingsScreenState extends State<ListingsScreen> {
                           ),
                         ),
                       );
+
+                      if (!mounted) return;
+
+                      if (result != null && result is Map && result['verified'] == true) {
+                        DemoAppState.markPickupVerified(id);
+                        _showMessage('Pickup verified. Impact record updated.');
+                      }
                     },
                     icon: const Icon(Icons.qr_code_2_rounded, size: 18),
                     label: const Text('Code'),

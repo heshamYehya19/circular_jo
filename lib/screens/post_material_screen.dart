@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import '../constants/app_colors.dart';
 import '../services/material_analysis_service.dart';
 
+import '../data/demo_app_state.dart';
+
 class PostMaterialScreen extends StatefulWidget {
   const PostMaterialScreen({super.key});
 
@@ -148,6 +150,20 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
       return;
     }
 
+    final quantity =
+    quantityController.text.trim().isEmpty ? '10' : quantityController.text.trim();
+
+    DemoAppState.addListing(
+      title: '$quantity kg $materialType',
+      category: materialType,
+      pickupTime: pickupTimeController.text.trim().isEmpty
+          ? 'Flexible pickup'
+          : pickupTimeController.text.trim(),
+      points: expectedPoints,
+      urgency: urgency,
+      icon: _iconForMaterial(materialType),
+    );
+
     Navigator.pop(context, {
       'posted': true,
       'title': materialType,
@@ -163,6 +179,31 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
         backgroundColor: AppColors.deepTeal,
       ),
     );
+  }
+
+  IconData _iconForMaterial(String type) {
+    final lower = type.toLowerCase();
+
+    if (lower.contains('food') || lower.contains('surplus')) {
+      return Icons.restaurant_rounded;
+    }
+
+    if (lower.contains('cardboard') ||
+        lower.contains('paper') ||
+        lower.contains('plastic') ||
+        lower.contains('metal') ||
+        lower.contains('glass') ||
+        lower.contains('recycl')) {
+      return Icons.inventory_2_rounded;
+    }
+
+    if (lower.contains('organic') ||
+        lower.contains('compost') ||
+        lower.contains('vegetable')) {
+      return Icons.eco_rounded;
+    }
+
+    return Icons.recycling_rounded;
   }
 
   @override

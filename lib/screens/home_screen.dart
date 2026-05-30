@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'impact_record_screen.dart';
 import 'post_material_screen.dart';
+import 'profile_screen.dart';
 import '../constants/theme_controller.dart';
 
 import 'listings_screen.dart';
@@ -886,6 +887,15 @@ class _HomeScreenState extends State<HomeScreen>
                       context,
                       MaterialPageRoute(
                         builder: (_) => const ImpactRecordScreen(),
+                      ),
+                    );
+                    return;
+                  }
+                  if (i == 4) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ProfileScreen(),
                       ),
                     );
                     return;

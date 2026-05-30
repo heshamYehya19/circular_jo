@@ -15,6 +15,22 @@ class PostMaterialScreen extends StatefulWidget {
 }
 
 class _PostMaterialScreenState extends State<PostMaterialScreen> {
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get bg => isDark ? const Color(0xFF081A16) : AppColors.softBackground;
+
+  Color get card => isDark ? const Color(0xFF122823) : AppColors.white;
+
+  Color get cardSoft =>
+      isDark ? const Color(0xFF0F221E) : AppColors.softBackground;
+
+  Color get text => isDark ? const Color(0xFFEAF6F0) : AppColors.charcoal;
+
+  Color get muted =>
+      isDark ? const Color(0xFFA9BDB4) : AppColors.charcoal.withOpacity(0.62);
+
+  Color get border => isDark ? const Color(0xFF24433A) : AppColors.mintBorder;
+
   File? selectedImage;
 
   bool isAnalyzing = false;
@@ -93,8 +109,9 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
         descriptionController.text = result.generatedDescription;
       });
     } catch (e) {
-      final quantity =
-      quantityController.text.trim().isEmpty ? '10' : quantityController.text.trim();
+      final quantity = quantityController.text.trim().isEmpty
+          ? '10'
+          : quantityController.text.trim();
 
       setState(() {
         isAnalyzing = false;
@@ -151,7 +168,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.softBackground,
+      backgroundColor: bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -192,7 +209,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
 
   Widget _buildTopAppBar() {
     return Container(
-      color: AppColors.softBackground,
+      color: bg,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -257,10 +274,10 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Post with AI',
                       style: TextStyle(
@@ -304,15 +321,15 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: card,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: uploadPressed ? AppColors.primaryGreen : AppColors.mintBorder,
+            color: uploadPressed ? AppColors.primaryGreen : border,
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryGreen.withOpacity(0.08),
+              color: AppColors.primaryGreen.withOpacity(isDark ? 0.04 : 0.08),
               blurRadius: 14,
               offset: const Offset(0, 5),
             ),
@@ -323,9 +340,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
           child: selectedImage == null
               ? CustomPaint(
             painter: _DashedBorderPainter(
-              color: uploadPressed
-                  ? AppColors.primaryGreen
-                  : AppColors.mintBorder,
+              color: uploadPressed ? AppColors.primaryGreen : border,
               strokeWidth: 2,
               dashLength: 8,
               dashGap: 5,
@@ -345,7 +360,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
                     decoration: BoxDecoration(
                       color: uploadPressed
                           ? AppColors.primaryGreen.withOpacity(0.10)
-                          : AppColors.softBackground,
+                          : cardSoft,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -369,7 +384,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
                     'Food surplus, cardboard, plastic, or organic waste',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.charcoal.withOpacity(0.62),
+                      color: muted,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -432,7 +447,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.charcoal,
+                      color: text,
                     ),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
@@ -445,7 +460,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
                   'kg',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.charcoal.withOpacity(0.60),
+                    color: muted,
                   ),
                 ),
               ],
@@ -461,7 +476,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
               controller: pickupTimeController,
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.charcoal,
+                color: text,
                 height: 1.4,
               ),
               decoration: const InputDecoration(
@@ -489,9 +504,9 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.mintBorder),
+        border: Border.all(color: border),
       ),
       child: Row(
         children: [
@@ -504,7 +519,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
             child: Text(
               'AI is classifying the material, checking condition, and estimating impact...',
               style: TextStyle(
-                color: AppColors.charcoal,
+                color: text,
                 fontWeight: FontWeight.w600,
                 height: 1.4,
               ),
@@ -519,19 +534,23 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
     final rows = [
       _ClassificationRow('Material Type', materialType, isError: false),
       _ClassificationRow('Condition', condition, isError: false),
-      _ClassificationRow('Urgency', urgency, isError: urgency.toLowerCase().contains('high')),
+      _ClassificationRow(
+        'Urgency',
+        urgency,
+        isError: urgency.toLowerCase().contains('high'),
+      ),
       _ClassificationRow('Recovery Path', recoveryPath, isError: false),
       _ClassificationRow('Suggested Receiver', suggestedReceiver, isError: false),
     ];
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.mintBorder),
+        border: Border.all(color: border),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.08),
+            color: AppColors.primaryGreen.withOpacity(isDark ? 0.04 : 0.08),
             blurRadius: 14,
             offset: const Offset(0, 5),
           ),
@@ -582,7 +601,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
                   'Expected Points',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.charcoal.withOpacity(0.64),
+                    color: muted,
                   ),
                 ),
                 Row(
@@ -623,7 +642,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
                 row.label,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.charcoal.withOpacity(0.64),
+                  color: muted,
                 ),
               ),
               Flexible(
@@ -633,7 +652,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: row.isError ? Colors.redAccent : AppColors.charcoal,
+                    color: row.isError ? Colors.redAccent : text,
                   ),
                 ),
               ),
@@ -642,7 +661,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
         ),
         Divider(
           height: 1,
-          color: AppColors.mintBorder.withOpacity(0.65),
+          color: border.withOpacity(0.65),
         ),
       ],
     );
@@ -658,7 +677,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
             fontSize: 12,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.6,
-            color: AppColors.charcoal.withOpacity(0.62),
+            color: muted,
           ),
         ),
         const SizedBox(height: 8),
@@ -671,17 +690,15 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: card,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: descriptionFocused
-                    ? AppColors.primaryGreen
-                    : AppColors.mintBorder,
+                color: descriptionFocused ? AppColors.primaryGreen : border,
                 width: descriptionFocused ? 1.5 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryGreen.withOpacity(0.08),
+                  color: AppColors.primaryGreen.withOpacity(isDark ? 0.04 : 0.08),
                   blurRadius: 14,
                   offset: const Offset(0, 5),
                 ),
@@ -693,7 +710,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
               maxLines: 4,
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.charcoal,
+                color: text,
                 height: 1.5,
               ),
               decoration: const InputDecoration(
@@ -711,9 +728,9 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
   Widget _buildImpactEstimate() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.brightTeal.withOpacity(0.12),
+        color: AppColors.brightTeal.withOpacity(isDark ? 0.10 : 0.12),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.mintBorder),
+        border: Border.all(color: border),
       ),
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -723,12 +740,12 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: AppColors.brightTeal.withOpacity(0.18),
+              color: AppColors.brightTeal.withOpacity(isDark ? 0.14 : 0.18),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.eco_rounded,
-              color: AppColors.deepTeal,
+              color: isDark ? const Color(0xFF9BEFE0) : AppColors.deepTeal,
               size: 23,
             ),
           ),
@@ -738,7 +755,7 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
               text: TextSpan(
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.deepTeal,
+                  color: isDark ? const Color(0xFF9BEFE0) : AppColors.deepTeal,
                   height: 1.5,
                 ),
                 children: [
@@ -746,7 +763,9 @@ class _PostMaterialScreenState extends State<PostMaterialScreen> {
                     text: 'Estimated impact: ',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  TextSpan(text: impactEstimate.replaceFirst('Estimated impact: ', '')),
+                  TextSpan(
+                    text: impactEstimate.replaceFirst('Estimated impact: ', ''),
+                  ),
                 ],
               ),
             ),
@@ -782,6 +801,12 @@ class _TopIconButton extends StatefulWidget {
 class _TopIconButtonState extends State<_TopIconButton> {
   bool pressed = false;
 
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get pressedColor => isDark
+      ? const Color(0xFF24433A).withOpacity(0.65)
+      : AppColors.mintBorder.withOpacity(0.55);
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -796,7 +821,7 @@ class _TopIconButtonState extends State<_TopIconButton> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: pressed ? AppColors.mintBorder.withOpacity(0.55) : Colors.transparent,
+          color: pressed ? pressedColor : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
         ),
         child: Icon(
@@ -822,15 +847,22 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final cardColor = isDark ? const Color(0xFF122823) : AppColors.white;
+    final borderColor = isDark ? const Color(0xFF24433A) : AppColors.mintBorder;
+    final mutedTextColor =
+    isDark ? const Color(0xFFA9BDB4) : AppColors.charcoal.withOpacity(0.62);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.mintBorder),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.08),
+            color: AppColors.primaryGreen.withOpacity(isDark ? 0.04 : 0.08),
             blurRadius: 14,
             offset: const Offset(0, 5),
           ),
@@ -853,7 +885,7 @@ class _InfoTile extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
-                  color: AppColors.charcoal.withOpacity(0.62),
+                  color: mutedTextColor,
                 ),
               ),
             ],
@@ -898,7 +930,8 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
         setState(() => pressed = false);
         widget.onTap();
       },
-      onTapCancel: widget.isLoading ? null : () => setState(() => pressed = false),
+      onTapCancel:
+      widget.isLoading ? null : () => setState(() => pressed = false),
       child: AnimatedScale(
         scale: pressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 120),

@@ -75,6 +75,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with TickerProviderStateMixin {
   int _selectedIndex = 0;
+  bool _showIncomingRequest = true;
+  bool _requestAccepted = false;
 
   Future<void> _goToPostMaterialScreen() async {
     final result = await Navigator.push(
@@ -118,6 +120,17 @@ class _HomeScreenState extends State<HomeScreen>
   // Pulse controller for notification dot
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
+
+  //helper massage
+  void _showHomeMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.deepTeal,
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -214,8 +227,6 @@ class _HomeScreenState extends State<HomeScreen>
                         _buildIncomingRequest(),
                         const SizedBox(height: 24),
                         _buildActiveListings(),
-                        const SizedBox(height: 24),
-                        _buildPickupVerification(),
                       ],
                     ),
                   ),
@@ -543,8 +554,73 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  Widget _buildRequestResultCard() {
+    final accepted = _requestAccepted;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: accepted
+            ? AppColors.primaryGreen.withOpacity(0.12)
+            : Colors.redAccent.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: accepted
+              ? AppColors.primaryGreen.withOpacity(0.35)
+              : Colors.redAccent.withOpacity(0.35),
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 22,
+            backgroundColor:
+            accepted ? AppColors.primaryGreen : Colors.redAccent,
+            child: Icon(
+              accepted ? Icons.check_rounded : Icons.close_rounded,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  accepted ? 'Request accepted' : 'Request rejected',
+                  style: TextStyle(
+                    color: accepted ? AppColors.primaryGreen : Colors.redAccent,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  accepted
+                      ? 'Hope Charity pickup is now tracked in Active Listings.'
+                      : 'The incoming request was removed from your dashboard.',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFFA9BDB4)
+                        : AppColors.charcoal.withOpacity(0.62),
+                    fontSize: 12.5,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   // ─── Incoming Request ──────────────────────────────────────────────────────
   Widget _buildIncomingRequest() {
+    if (!_showIncomingRequest) {
+      return _buildRequestResultCard();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -642,7 +718,16 @@ class _HomeScreenState extends State<HomeScreen>
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => HapticFeedback.lightImpact(),
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+
+                        setState(() {
+                          _showIncomingRequest = false;
+                          _requestAccepted = false;
+                        });
+
+                        _showHomeMessage('Request rejected.');
+                      },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: _HomeColors.error, width: 2),
                         foregroundColor: _HomeColors.error,
@@ -661,8 +746,16 @@ class _HomeScreenState extends State<HomeScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => HapticFeedback.mediumImpact(),
-                      style: ElevatedButton.styleFrom(
+                      onPressed: () {
+                        HapticFeedback.mediumImpact();
+
+                        setState(() {
+                          _showIncomingRequest = false;
+                          _requestAccepted = true;
+                        });
+
+                        _showHomeMessage('Request accepted. Pickup moved to listings.');
+                      },                      style: ElevatedButton.styleFrom(
                         backgroundColor: _HomeColors.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -686,6 +779,8 @@ class _HomeScreenState extends State<HomeScreen>
       ],
     );
   }
+
+
 
   // ─── Active Listings ───────────────────────────────────────────────────────
   Widget _buildActiveListings() {

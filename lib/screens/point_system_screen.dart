@@ -24,7 +24,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
 
   final List<_TierData> tiers = const [
     _TierData(
-      name: 'Bronze',
+      name: 'Bronze Tier',
       range: '0 - 2,999',
       minPoints: 0,
       maxPoints: 2999,
@@ -51,7 +51,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
       description: 'High-performing organization with priority recognition.',
     ),
     _TierData(
-      name: 'Platinum',
+      name: 'Platinum Tier',
       range: '20,000+',
       minPoints: 20000,
       maxPoints: 99999,
@@ -391,7 +391,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Silver Impact Partner',
+                  'Silver Tier',
                   style: TextStyle(
                     color: text,
                     fontSize: 19,
@@ -409,7 +409,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Only 350 points away from Gold Partner.',
+                  'Only 350 points away from Gold Tier.',
                   style: TextStyle(
                     color: muted,
                     fontSize: 12.5,
@@ -591,7 +591,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
 
   String _tierRecognition(String tier) {
     switch (tier) {
-      case 'Bronze':
+      case 'Bronze Tier':
         return 'Basic public badge';
       case 'Silver':
         return 'Verified partner badge';
@@ -604,7 +604,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
 
   String _tierPriority(String tier) {
     switch (tier) {
-      case 'Bronze':
+      case 'Bronze Tier':
         return 'Standard visibility';
       case 'Silver':
         return 'Improved visibility';

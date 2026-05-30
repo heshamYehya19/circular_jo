@@ -317,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen>
                     borderRadius: BorderRadius.circular(9999),
                   ),
                   child: Text(
-                    'SILVER IMPACT PARTNER',
+                    'Silver Tier',
                     style: TextStyle(
                       fontFamily: 'Hanken Grotesk',
                       fontSize: 10,

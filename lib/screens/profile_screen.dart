@@ -156,7 +156,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 9),
                     _ProfileBadge(
-                      text: 'Silver Impact Partner',
+                      text: 'Silver Tier',
                     ),
                   ],
                 ),
@@ -216,7 +216,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '350 points away from Gold Partner.',
+                  '350 points away from Gold Tier.',
                   style: TextStyle(
                     color: _muted(context),
                     fontSize: 12.5,

@@ -756,13 +756,13 @@ class _HomeScreenState extends State<HomeScreen>
 
                         _showHomeMessage('Request accepted. Pickup moved to listings.');
                       },                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _HomeColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        elevation: 0,
-                      ),
+                      backgroundColor: _HomeColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                    ),
                       child: Text(
                         'Accept',
                         style: TextStyle(

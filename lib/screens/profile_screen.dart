@@ -466,7 +466,7 @@ class ProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Incentive Readiness',
+                      'Tax Exemption Request',
                       style: TextStyle(
                         color: _text(context),
                         fontSize: 17,
@@ -475,7 +475,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Ready for official review',
+                      'Application ready for review',
                       style: TextStyle(
                         color: _muted(context),
                         fontSize: 12.5,
@@ -490,7 +490,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            'Generate a verified impact report that can support future sustainability incentive or tax-benefit applications.',
+            'Submit a verified impact record that can support future sustainability incentive or tax-benefit applications.',
             style: TextStyle(
               color: _muted(context),
               fontSize: 12.7,
@@ -506,7 +506,7 @@ class ProfileScreen extends StatelessWidget {
                 HapticFeedback.mediumImpact();
                 _showMessage(
                   context,
-                  'Verified incentive report generated for review.',
+                  'Application Submitted for Review.',
                 );
               },
               icon: const Icon(Icons.description_rounded, size: 19),

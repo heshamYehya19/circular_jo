@@ -69,8 +69,6 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 18),
             _buildAccountDetails(context),
             const SizedBox(height: 18),
-            _buildQuickActions(context),
-            const SizedBox(height: 18),
             _buildSettings(context),
             const SizedBox(height: 22),
             _buildLogoutButton(context),
@@ -293,55 +291,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
-    return _sectionCard(
-      context,
-      title: 'Quick Actions',
-      icon: Icons.grid_view_rounded,
-      child: Column(
-        children: [
-          _actionTile(
-            context,
-            icon: Icons.insights_rounded,
-            title: 'View Impact Dashboard',
-            subtitle: 'Track verified recovery and reports',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ImpactRecordScreen(),
-                ),
-              );
-            },
-          ),
-          _actionTile(
-            context,
-            icon: Icons.list_alt_rounded,
-            title: 'View Active Listings',
-            subtitle: 'See material status and pickup progress',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ListingsScreen(),
-                ),
-              );
-            },
-          ),
-          _actionTile(
-            context,
-            icon: Icons.description_rounded,
-            title: 'Monthly Report',
-            subtitle: 'Preview your sustainability summary',
-            onTap: () {
-              _showMessage(context, 'Monthly report preview opened.');
-            },
-            isLast: true,
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildSettings(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

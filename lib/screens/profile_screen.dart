@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 
 import '../constants/app_colors.dart';
 import '../constants/theme_controller.dart';
-import 'impact_record_screen.dart';
-import 'listings_screen.dart';
 import 'point_system_screen.dart';
 import 'signup_page.dart';
 
@@ -61,15 +59,162 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
         child: Column(
           children: [
-            _buildOrganizationCard(context),
+            _buildHeader(context),
+            const SizedBox(height: 16),
+            _buildStatsRow(context),
             const SizedBox(height: 18),
-            _buildImpactBadgeCard(context),
+            _buildIncentiveCard(context),
             const SizedBox(height: 18),
-            _buildVerificationDetails(context),
+            _buildSection(
+              context,
+              title: 'Organization',
+              children: [
+                _profileTile(
+                  context,
+                  icon: Icons.verified_user_rounded,
+                  title: 'Verification details',
+                  subtitle: 'Active • CCD Mock Verification',
+                  trailing: _statusPill(context, 'Verified'),
+                  onTap: () => _showDetailsSheet(context),
+                ),
+                _divider(context),
+                _profileTile(
+                  context,
+                  icon: Icons.badge_rounded,
+                  title: 'National number',
+                  subtitle: '100200300',
+                  trailing: Icon(
+                    Icons.copy_rounded,
+                    color: _muted(context),
+                    size: 19,
+                  ),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _showMessage(context, 'National number copied.');
+                  },
+                ),
+              ],
+            ),
             const SizedBox(height: 18),
-            _buildAccountDetails(context),
+            _buildSection(
+              context,
+              title: 'Account',
+              children: [
+                _profileTile(
+                  context,
+                  icon: Icons.person_rounded,
+                  title: 'Account holder',
+                  subtitle: 'Circular JO User',
+                  trailing: null,
+                ),
+                _divider(context),
+                _profileTile(
+                  context,
+                  icon: Icons.email_rounded,
+                  title: 'Email',
+                  subtitle: 'user@organization.jo',
+                  trailing: null,
+                ),
+                _divider(context),
+                _profileTile(
+                  context,
+                  icon: Icons.phone_rounded,
+                  title: 'Phone',
+                  subtitle: '+962 7X XXX XXXX',
+                  trailing: null,
+                ),
+              ],
+            ),
             const SizedBox(height: 18),
-            _buildSettings(context),
+            _buildSection(
+              context,
+              title: 'Preferences',
+              children: [
+                _settingsTile(
+                  context,
+                  icon: _isDark(context)
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_rounded,
+                  title: 'Dark Mode',
+                  subtitle: _isDark(context) ? 'Enabled' : 'Disabled',
+                  trailing: Switch(
+                    value: _isDark(context),
+                    activeColor: AppColors.primaryGreen,
+                    onChanged: (_) {
+                      HapticFeedback.selectionClick();
+                      ThemeController.toggleTheme();
+                    },
+                  ),
+                ),
+                _divider(context),
+                _settingsTile(
+                  context,
+                  icon: Icons.notifications_rounded,
+                  title: 'Notifications',
+                  subtitle: 'Pickup and offer alerts',
+                  trailing: Switch(
+                    value: true,
+                    activeColor: AppColors.primaryGreen,
+                    onChanged: (_) {
+                      HapticFeedback.selectionClick();
+                      _showMessage(context, 'Notifications setting updated.');
+                    },
+                  ),
+                ),
+                _divider(context),
+                _profileTile(
+                  context,
+                  icon: Icons.language_rounded,
+                  title: 'Language',
+                  subtitle: 'English',
+                  trailing: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: _muted(context),
+                    size: 15,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            _buildSection(
+              context,
+              title: 'Circular JO',
+              children: [
+                _profileTile(
+                  context,
+                  icon: Icons.stars_rounded,
+                  title: 'Point system',
+                  subtitle: 'View tiers and earning rules',
+                  trailing: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: _muted(context),
+                    size: 15,
+                  ),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PointSystemScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _divider(context),
+                _profileTile(
+                  context,
+                  icon: Icons.policy_rounded,
+                  title: 'Verification policy',
+                  subtitle: 'Points require verified pickup',
+                  trailing: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: _muted(context),
+                    size: 15,
+                  ),
+                  onTap: () => _showVerificationPolicy(context),
+                ),
+              ],
+            ),
             const SizedBox(height: 22),
             _buildLogoutButton(context),
           ],
@@ -78,7 +223,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrganizationCard(BuildContext context) {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(22),
@@ -91,7 +236,7 @@ class ProfileScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
             color: AppColors.primaryGreen.withOpacity(0.22),
@@ -103,61 +248,75 @@ class ProfileScreen extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            right: -20,
-            top: -20,
+            right: -22,
+            top: -25,
             child: Icon(
               Icons.storefront_rounded,
-              size: 125,
+              size: 130,
               color: Colors.white.withOpacity(0.10),
             ),
           ),
-          Row(
+          Column(
             children: [
-              Container(
-                height: 68,
-                width: 68,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.18),
+              Row(
+                children: [
+                  Container(
+                    height: 74,
+                    width: 74,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(26),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.18),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.restaurant_rounded,
+                      color: Colors.white,
+                      size: 40,
+                    ),
                   ),
-                ),
-                child: const Icon(
-                  Icons.restaurant_rounded,
-                  color: Colors.white,
-                  size: 38,
-                ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Green Bites Restaurant',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 21,
+                            fontWeight: FontWeight.w900,
+                            height: 1.2,
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          'Verified Organization',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Green Bites Restaurant',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 21,
-                        fontWeight: FontWeight.w900,
-                        height: 1.2,
-                      ),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      'Verified Organization',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 9),
-                    _ProfileBadge(
-                      text: 'Silver Tier',
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  _headerPill(
+                    icon: Icons.verified_rounded,
+                    text: 'Verified',
+                  ),
+                  const SizedBox(width: 10),
+                  _headerPill(
+                    icon: Icons.workspace_premium_rounded,
+                    text: 'Silver Tier',
+                  ),
+                ],
               ),
             ],
           ),
@@ -166,182 +325,386 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildImpactBadgeCard(BuildContext context) {
+  Widget _headerPill({
+    required IconData icon,
+    required String text,
+  }) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.18),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: Colors.white,
+            size: 15,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _card(context),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: _border(context)),
+      ),
+      child: Row(
+        children: [
+          _statItem(context, '3', 'Listings'),
+          _verticalDivider(context),
+          _statItem(context, '74', 'Pickups'),
+          _verticalDivider(context),
+          _statItem(context, '8,650', 'Points'),
+        ],
+      ),
+    );
+  }
+
+  Widget _statItem(BuildContext context, String value, String label) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              color: _text(context),
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            style: TextStyle(
+              color: _muted(context),
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _verticalDivider(BuildContext context) {
+    return Container(
+      height: 32,
+      width: 1,
+      color: _border(context),
+    );
+  }
+
+  Widget _buildIncentiveCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: _card(context),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: _border(context)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryGreen.withOpacity(
+              _isDark(context) ? 0.04 : 0.08,
+            ),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(17),
+                ),
+                child: Icon(
+                  Icons.receipt_long_rounded,
+                  color: AppColors.primaryGreen,
+                  size: 25,
+                ),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Incentive Readiness',
+                      style: TextStyle(
+                        color: _text(context),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Ready for official review',
+                      style: TextStyle(
+                        color: _muted(context),
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _statusPill(context, 'Ready'),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Generate a verified impact report that can support future sustainability incentive or tax-benefit applications.',
+            style: TextStyle(
+              color: _muted(context),
+              fontSize: 12.7,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                _showMessage(
+                  context,
+                  'Verified incentive report generated for review.',
+                );
+              },
+              icon: const Icon(Icons.description_rounded, size: 19),
+              label: const Text('Generate Report'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGreen,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Circular JO provides verified records for official review. It does not approve exemptions directly.',
+            style: TextStyle(
+              color: _muted(context),
+              fontSize: 10.8,
+              height: 1.35,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection(
+      BuildContext context, {
+        required String title,
+        required List<Widget> children,
+      }) {
+    return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: _card(context),
         borderRadius: BorderRadius.circular(26),
         border: Border.all(color: _border(context)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: 88,
-            width: 88,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircularProgressIndicator(
-                  value: 0.72,
-                  strokeWidth: 8,
-                  backgroundColor: _border(context),
-                  color: AppColors.primaryGreen,
-                ),
-                Text(
-                  '72%',
-                  style: TextStyle(
-                    color: _text(context),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 4),
+            child: Text(
+              title,
+              style: TextStyle(
+                color: _muted(context),
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.8,
+              ),
             ),
           ),
-          const SizedBox(width: 18),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _profileTile(
+      BuildContext context, {
+        required IconData icon,
+        required String title,
+        required String subtitle,
+        required Widget? trailing,
+        VoidCallback? onTap,
+      }) {
+    return InkWell(
+      onTap: onTap == null
+          ? null
+          : () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: AppColors.primaryGreen.withOpacity(0.11),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(
+                icon,
+                color: AppColors.primaryGreen,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: _text(context),
+                      fontSize: 14.3,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: _muted(context),
+                      fontSize: 12.2,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: 10),
+              trailing,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _settingsTile(
+      BuildContext context, {
+        required IconData icon,
+        required String title,
+        required String subtitle,
+        required Widget trailing,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            height: 42,
+            width: 42,
+            decoration: BoxDecoration(
+              color: AppColors.primaryGreen.withOpacity(0.11),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primaryGreen,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 13),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '8,650 Impact Points',
+                  title,
                   style: TextStyle(
                     color: _text(context),
-                    fontSize: 19,
-                    fontWeight: FontWeight.w900,
+                    fontSize: 14.3,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 3),
                 Text(
-                  '350 points away from Gold Tier.',
+                  subtitle,
                   style: TextStyle(
                     color: _muted(context),
-                    fontSize: 12.5,
+                    fontSize: 12.2,
                     fontWeight: FontWeight.w600,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const PointSystemScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryGreen.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      'View Point System',
-                      style: TextStyle(
-                        color: AppColors.primaryGreen,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
                   ),
                 ),
               ],
             ),
           ),
+          trailing,
         ],
       ),
     );
   }
 
-  Widget _buildVerificationDetails(BuildContext context) {
-    return _sectionCard(
-      context,
-      title: 'Organization Verification',
-      icon: Icons.verified_user_rounded,
-      child: Column(
-        children: [
-          _infoRow(context, 'National Number', '100200300'),
-          _infoRow(context, 'Organization Type', 'Restaurant'),
-          _infoRow(context, 'Status', 'Active - Verified'),
-          _infoRow(context, 'Source', 'CCD Mock Verification', isLast: true),
-        ],
+  Widget _statusPill(BuildContext context, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.freshGreen.withOpacity(0.13),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: AppColors.freshGreen,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }
 
-  Widget _buildAccountDetails(BuildContext context) {
-    return _sectionCard(
-      context,
-      title: 'Account Details',
-      icon: Icons.person_rounded,
-      child: Column(
-        children: [
-          _infoRow(context, 'Account Holder', 'Circular JO User'),
-          _infoRow(context, 'Phone Number', '+962 7X XXX XXXX'),
-          _infoRow(context, 'Email', 'user@organization.jo', isLast: true),
-        ],
-      ),
-    );
-  }
-
-
-
-  Widget _buildSettings(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return _sectionCard(
-      context,
-      title: 'App Settings',
-      icon: Icons.settings_rounded,
-      child: Column(
-        children: [
-          _settingsTile(
-            context,
-            icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-            title: 'Dark Mode',
-            trailing: Switch(
-              value: isDark,
-              activeColor: AppColors.primaryGreen,
-              onChanged: (_) {
-                HapticFeedback.selectionClick();
-                ThemeController.toggleTheme();
-              },
-            ),
-          ),
-          _settingsTile(
-            context,
-            icon: Icons.notifications_rounded,
-            title: 'Notifications',
-            trailing: Switch(
-              value: true,
-              activeColor: AppColors.primaryGreen,
-              onChanged: (_) {
-                _showMessage(context, 'Notifications setting updated.');
-              },
-            ),
-          ),
-          _settingsTile(
-            context,
-            icon: Icons.language_rounded,
-            title: 'Language',
-            trailing: Text(
-              'English',
-              style: TextStyle(
-                color: _muted(context),
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            isLast: true,
-          ),
-        ],
+  Widget _divider(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 73),
+      child: Divider(
+        height: 1,
+        color: _border(context),
       ),
     );
   }
@@ -376,200 +739,111 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionCard(
-      BuildContext context, {
-        required String title,
-        required IconData icon,
-        required Widget child,
-      }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: _card(context),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: _border(context)),
+  void _showDetailsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _card(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      child: Column(
-        children: [
-          Row(
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                height: 42,
-                width: 42,
+                height: 5,
+                width: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Icon(
-                  icon,
-                  color: AppColors.primaryGreen,
-                  size: 23,
+                  color: _border(context),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    color: _text(context),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _infoRow(
-      BuildContext context,
-      String label,
-      String value, {
-        bool isLast = false,
-      }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 42,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: _muted(context),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 58,
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                color: _text(context),
-                fontSize: 13.5,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _actionTile(
-      BuildContext context, {
-        required IconData icon,
-        required String title,
-        required String subtitle,
-        required VoidCallback onTap,
-        bool isLast = false,
-      }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onTap();
-        },
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: _cardSoft(context),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: _border(context)),
-          ),
-          child: Row(
-            children: [
+              const SizedBox(height: 22),
               Icon(
-                icon,
+                Icons.verified_user_rounded,
                 color: AppColors.primaryGreen,
-                size: 24,
+                size: 44,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: _text(context),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: _muted(context),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: _muted(context),
-                size: 15,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _settingsTile(
-      BuildContext context, {
-        required IconData icon,
-        required String title,
-        required Widget trailing,
-        bool isLast = false,
-      }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: _cardSoft(context),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: _border(context)),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: AppColors.primaryGreen,
-              size: 24,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
+              const SizedBox(height: 12),
+              Text(
+                'Verified Organization',
                 style: TextStyle(
                   color: _text(context),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
-            ),
-            trailing,
-          ],
-        ),
+              const SizedBox(height: 8),
+              Text(
+                'Green Bites Restaurant was verified using a mock company national number for prototype demonstration.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _muted(context),
+                  fontSize: 13,
+                  height: 1.45,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showVerificationPolicy(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _card(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 5,
+                width: 48,
+                decoration: BoxDecoration(
+                  color: _border(context),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(height: 22),
+              Icon(
+                Icons.policy_rounded,
+                color: AppColors.primaryGreen,
+                size: 44,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Verification Policy',
+                style: TextStyle(
+                  color: _text(context),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Circular JO only awards official impact points after a pickup is verified through code confirmation and proof of handover.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _muted(context),
+                  fontSize: 13,
+                  height: 1.45,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -579,39 +853,6 @@ class ProfileScreen extends StatelessWidget {
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.deepTeal,
-      ),
-    );
-  }
-}
-
-class _ProfileBadge extends StatelessWidget {
-  final String text;
-
-  const _ProfileBadge({
-    required this.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 5,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.14),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.18),
-        ),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
-        ),
       ),
     );
   }

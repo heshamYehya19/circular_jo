@@ -8,7 +8,7 @@ import 'impact_record_screen.dart';
 import 'post_material_screen.dart';
 import 'profile_screen.dart';
 import '../constants/theme_controller.dart';
-
+import '../data/demo_app_state.dart';
 import 'listings_screen.dart';
 
 // ─── Color Tokens ────────────────────────────────────────────────────────────
@@ -401,23 +401,25 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ─── Impact Section ────────────────────────────────────────────────────────
   Widget _buildImpactSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Today's Recovery Impact",
-          style: TextStyle(
-            fontFamily: 'Manrope',
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _HomeColors.onSurface,
-          ),
-        ),
-        const SizedBox(height: 12),
-        AnimatedBuilder(
-          animation: _countController,
-          builder: (_, __) {
-            return GridView.count(
+    return ValueListenableBuilder<DemoImpactStats>(
+      valueListenable: DemoAppState.impactStats,
+      builder: (context, stats, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Today's Recovery Impact",
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFFEAF6F0)
+                    : AppColors.charcoal,
+              ),
+            ),
+            const SizedBox(height: 12),
+            GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -427,29 +429,29 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 _StatCard(
                   icon: Icons.monitor_weight_outlined,
-                  value: '${_kgAnimation.value.ceil()} kg',
+                  value: '${stats.wasteKg} kg',
                   label: 'Kg Diverted',
                 ),
                 _StatCard(
                   icon: Icons.star_outline,
-                  value: '${_pointsAnimation.value.ceil()}',
+                  value: '${stats.points}',
                   label: 'Impact Points',
                 ),
                 _StatCard(
                   icon: Icons.check_circle_outline,
-                  value: '${_pickupsAnimation.value.ceil()}',
+                  value: '${stats.verifiedPickups}',
                   label: 'Verified Pickups',
                 ),
                 _StatCard(
                   icon: Icons.restaurant_outlined,
-                  value: '${_mealsAnimation.value.ceil()}',
+                  value: '${stats.mealsSupported}',
                   label: 'Meals Supported',
                 ),
               ],
-            );
-          },
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 

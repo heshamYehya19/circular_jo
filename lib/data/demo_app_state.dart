@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-
-
 class DemoListing {
   final String id;
   final String title;
@@ -61,6 +59,7 @@ class DemoListing {
     );
   }
 }
+
 class DemoImpactStats {
   final int wasteKg;
   final int points;
@@ -92,23 +91,93 @@ class DemoImpactStats {
     );
   }
 }
+
+class MockCompany {
+  final String companyName;
+  final String status;
+  final String type;
+  final String source;
+
+  const MockCompany({
+    required this.companyName,
+    required this.status,
+    required this.type,
+    required this.source,
+  });
+}
+
 class DemoAppState {
+  static const Map<String, MockCompany> mockCompanies = {
+    '100200300': MockCompany(
+      companyName: 'Green Bites Restaurant',
+      status: 'Active',
+      type: 'Restaurant',
+      source: 'CCD Mock Verification',
+    ),
+    '200300400': MockCompany(
+      companyName: 'Hope Charity',
+      status: 'Active',
+      type: 'Charity',
+      source: 'CCD Mock Verification',
+    ),
+    '300400500': MockCompany(
+      companyName: 'Amman Recycling Co.',
+      status: 'Active',
+      type: 'Recycler',
+      source: 'CCD Mock Verification',
+    ),
+    '400500600': MockCompany(
+      companyName: 'Jordan Fresh Market',
+      status: 'Active',
+      type: 'Supermarket',
+      source: 'CCD Mock Verification',
+    ),
+    '500600700': MockCompany(
+      companyName: 'EcoFarm Jordan',
+      status: 'Active',
+      type: 'Farm',
+      source: 'CCD Mock Verification',
+    ),
+    '600700800': MockCompany(
+      companyName: 'Amman Compost Hub',
+      status: 'Active',
+      type: 'Composting Partner',
+      source: 'CCD Mock Verification',
+    ),
+  };
+
+  static MockCompany? getMockCompany(String nationalNumber) {
+    return mockCompanies[nationalNumber.trim()];
+  }
+
   static final ValueNotifier<String> organizationName =
   ValueNotifier<String>('Green Bites Restaurant');
 
   static final ValueNotifier<String> organizationNationalNumber =
   ValueNotifier<String>('100200300');
 
-  static void updateOrganization({
-    required String name,
-    required String nationalNumber,
-  }) {
-    organizationName.value =
-    name.trim().isEmpty ? 'Verified Organization' : name.trim();
+  static final ValueNotifier<String> organizationType =
+  ValueNotifier<String>('Restaurant');
+
+  static final ValueNotifier<String> organizationStatus =
+  ValueNotifier<String>('Active');
+
+  static final ValueNotifier<String> organizationSource =
+  ValueNotifier<String>('CCD Mock Verification');
+
+  static void updateOrganizationFromNationalNumber(String nationalNumber) {
+    final cleanNumber = nationalNumber.trim();
+    final company = getMockCompany(cleanNumber);
 
     organizationNationalNumber.value =
-    nationalNumber.trim().isEmpty ? '100200300' : nationalNumber.trim();
+    cleanNumber.isEmpty ? '100200300' : cleanNumber;
+
+    organizationName.value = company?.companyName ?? 'Verified Organization';
+    organizationType.value = company?.type ?? 'Organization';
+    organizationStatus.value = company?.status ?? 'Active';
+    organizationSource.value = company?.source ?? 'CCD Mock Verification';
   }
+
   static final ValueNotifier<DemoImpactStats> impactStats =
   ValueNotifier<DemoImpactStats>(
     const DemoImpactStats(
@@ -119,6 +188,7 @@ class DemoAppState {
       co2Avoided: 620,
     ),
   );
+
   static final ValueNotifier<List<DemoListing>> listings =
   ValueNotifier<List<DemoListing>>([
     DemoListing(
@@ -224,6 +294,7 @@ class DemoAppState {
       );
     }).toList();
   }
+
   static void addVerifiedImpact({
     required String materialTitle,
     required String points,
@@ -240,9 +311,8 @@ class DemoAppState {
     ) ??
         10;
 
-    final estimatedMeals = materialTitle.toLowerCase().contains('food')
-        ? extractedKg * 2
-        : 0;
+    final estimatedMeals =
+    materialTitle.toLowerCase().contains('food') ? extractedKg * 2 : 0;
 
     final estimatedCo2 = (extractedKg * 0.5).round();
 
@@ -258,14 +328,18 @@ class DemoAppState {
   static void resetDemo() {
     organizationName.value = 'Green Bites Restaurant';
     organizationNationalNumber.value = '100200300';
+    organizationType.value = 'Restaurant';
+    organizationStatus.value = 'Active';
+    organizationSource.value = 'CCD Mock Verification';
+
     impactStats.value = const DemoImpactStats(
       wasteKg: 1240,
       points: 8650,
       verifiedPickups: 74,
       mealsSupported: 2480,
       co2Avoided: 620,
-
     );
+
     listings.value = [
       DemoListing(
         id: 'food-demo',

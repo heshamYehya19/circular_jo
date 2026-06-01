@@ -166,9 +166,8 @@ class _SignUpPageState extends State<SignUpPage>
       accountCreated = true;
     });
 
-    DemoAppState.updateOrganization(
-      name: getMockOrganizationName(businessIdController.text),
-      nationalNumber: businessIdController.text,
+    DemoAppState.updateOrganizationFromNationalNumber(
+      businessIdController.text,
     );
 
     Navigator.pushReplacement(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import '../data/demo_app_state.dart';
 import '../constants/app_colors.dart';
 import '../constants/theme_controller.dart';
 import 'point_system_screen.dart';
@@ -77,20 +77,27 @@ class ProfileScreen extends StatelessWidget {
                   trailing: _statusPill(context, 'Verified'),
                   onTap: () => _showDetailsSheet(context),
                 ),
+
                 _divider(context),
-                _profileTile(
-                  context,
-                  icon: Icons.badge_rounded,
-                  title: 'National number',
-                  subtitle: '100200300',
-                  trailing: Icon(
-                    Icons.copy_rounded,
-                    color: _muted(context),
-                    size: 19,
-                  ),
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    _showMessage(context, 'National number copied.');
+
+                ValueListenableBuilder<String>(
+                  valueListenable: DemoAppState.organizationNationalNumber,
+                  builder: (context, nationalNumber, _) {
+                    return _profileTile(
+                      context,
+                      icon: Icons.badge_rounded,
+                      title: 'National number',
+                      subtitle: nationalNumber,
+                      trailing: Icon(
+                        Icons.copy_rounded,
+                        color: _muted(context),
+                        size: 19,
+                      ),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        _showMessage(context, 'National number copied.');
+                      },
+                    );
                   },
                 ),
               ],
@@ -277,21 +284,26 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Green Bites Restaurant',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 21,
-                            fontWeight: FontWeight.w900,
-                            height: 1.2,
-                          ),
+                        ValueListenableBuilder<String>(
+                          valueListenable: DemoAppState.organizationName,
+                          builder: (context, orgName, _) {
+                            return Text(
+                              orgName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 21,
+                                fontWeight: FontWeight.w900,
+                                height: 1.2,
+                              ),
+                            );
+                          },
                         ),
-                        SizedBox(height: 5),
-                        Text(
+                        const SizedBox(height: 5),
+                        const Text(
                           'Verified Organization',
                           style: TextStyle(
                             color: Colors.white70,
@@ -777,7 +789,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Green Bites Restaurant was verified using a mock company national number for prototype demonstration.',
+                '${DemoAppState.organizationName.value} was verified using a mock company national number for prototype demonstration.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _muted(context),

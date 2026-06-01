@@ -9,7 +9,7 @@ import 'package:video_player/video_player.dart';
 
 import '../constants/app_colors.dart';
 import '../services/company_verification_service.dart';
-
+import '../data/demo_app_state.dart';
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -40,6 +40,24 @@ class _SignUpPageState extends State<SignUpPage>
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+
+  String getMockOrganizationName(String nationalNumber) {
+    final cleanNumber = nationalNumber.trim();
+
+    if (cleanNumber == '100200300') {
+      return 'Green Bites Restaurant';
+    }
+
+    if (cleanNumber == '200300400') {
+      return 'Amman Fresh Market';
+    }
+
+    if (cleanNumber == '300400500') {
+      return 'EcoPack Jordan';
+    }
+
+    return 'Verified Organization';
+  }
 
   @override
   void initState() {
@@ -147,6 +165,11 @@ class _SignUpPageState extends State<SignUpPage>
       isCreatingAccount = false;
       accountCreated = true;
     });
+
+    DemoAppState.updateOrganization(
+      name: getMockOrganizationName(businessIdController.text),
+      nationalNumber: businessIdController.text,
+    );
 
     Navigator.pushReplacement(
       context,

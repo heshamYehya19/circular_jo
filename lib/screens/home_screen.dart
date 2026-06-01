@@ -309,15 +309,22 @@ class _HomeScreenState extends State<HomeScreen>
                     color: _HomeColors.onSurfaceVariant.withOpacity(0.7),
                   ),
                 ),
-                Text(
-                  'Green Bites Restaurant',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: _HomeColors.onSurface,
-                    height: 1.1,
-                  ),
+                ValueListenableBuilder<String>(
+                  valueListenable: DemoAppState.organizationName,
+                  builder: (context, orgName, _) {
+                    return Text(
+                      orgName,
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFFEAF6F0)
+                            : AppColors.charcoal,
+                        height: 1.1,
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 4),
                 Container(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+
+
 class DemoListing {
   final String id;
   final String title;
@@ -91,6 +93,22 @@ class DemoImpactStats {
   }
 }
 class DemoAppState {
+  static final ValueNotifier<String> organizationName =
+  ValueNotifier<String>('Green Bites Restaurant');
+
+  static final ValueNotifier<String> organizationNationalNumber =
+  ValueNotifier<String>('100200300');
+
+  static void updateOrganization({
+    required String name,
+    required String nationalNumber,
+  }) {
+    organizationName.value =
+    name.trim().isEmpty ? 'Verified Organization' : name.trim();
+
+    organizationNationalNumber.value =
+    nationalNumber.trim().isEmpty ? '100200300' : nationalNumber.trim();
+  }
   static final ValueNotifier<DemoImpactStats> impactStats =
   ValueNotifier<DemoImpactStats>(
     const DemoImpactStats(
@@ -238,12 +256,15 @@ class DemoAppState {
   }
 
   static void resetDemo() {
+    organizationName.value = 'Green Bites Restaurant';
+    organizationNationalNumber.value = '100200300';
     impactStats.value = const DemoImpactStats(
       wasteKg: 1240,
       points: 8650,
       verifiedPickups: 74,
       mealsSupported: 2480,
       co2Avoided: 620,
+
     );
     listings.value = [
       DemoListing(

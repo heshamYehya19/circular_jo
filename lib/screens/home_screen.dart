@@ -11,6 +11,8 @@ import '../constants/theme_controller.dart';
 import '../data/demo_app_state.dart';
 import 'listings_screen.dart';
 
+import 'point_system_screen.dart';
+
 // ─── Color Tokens ────────────────────────────────────────────────────────────
 class _HomeColors {
   static bool isDark = false;
@@ -348,62 +350,159 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
-          IconButton(
-            onPressed: ThemeController.toggleTheme,
-            icon: Icon(
-              Icons.dark_mode_rounded,
-              color: AppColors.primaryGreen,
-            ),
-          ),
-          // Notification bell
-          GestureDetector(
-            onTap: () {},
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(Icons.notifications_outlined,
-                      color: _HomeColors.onSurface),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: AnimatedBuilder(
-                      animation: _pulseAnimation,
-                      builder: (_, child) {
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: 8 * _pulseAnimation.value,
-                              height: 8 * _pulseAnimation.value,
-                              decoration: BoxDecoration(
-                                color: _HomeColors.error.withOpacity(
-                                    1.0 - (_pulseAnimation.value - 0.8) / 1.7),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: _HomeColors.error,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildPointSystemButton(),
         ],
       ),
     );
+  }
+
+  // ─── move to point system ────────────────────────────────────────────────────────
+
+  Widget _buildPointSystemButton() {
+    return ValueListenableBuilder<DemoImpactStats>(
+      valueListenable: DemoAppState.impactStats,
+      builder: (context, stats, _) {
+        final points = stats.points;
+        final tier = _tierFromPoints(points);
+
+        return GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const PointSystemScreen(),
+              ),
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primaryGreen.withOpacity(
+                    _HomeColors.isDark ? 0.32 : 0.15,
+                  ),
+                  AppColors.brightTeal.withOpacity(
+                    _HomeColors.isDark ? 0.24 : 0.12,
+                  ),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: AppColors.primaryGreen.withOpacity(0.32),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryGreen.withOpacity(
+                    _HomeColors.isDark ? 0.08 : 0.14,
+                  ),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 32,
+                  width: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGreen,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryGreen.withOpacity(0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.stars_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_formatPoints(points)} pts',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        color: _HomeColors.onSurface,
+                        fontSize: 12.8,
+                        fontWeight: FontWeight.w900,
+                        height: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          tier,
+                          style: TextStyle(
+                            fontFamily: 'Hanken Grotesk',
+                            color: AppColors.primaryGreen,
+                            fontSize: 10.2,
+                            fontWeight: FontWeight.w900,
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: AppColors.primaryGreen,
+                          size: 9,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _tierFromPoints(int points) {
+    if (points >= 20000) {
+      return 'Platinum';
+    }
+
+    if (points >= 9000) {
+      return 'Gold';
+    }
+
+    if (points >= 3000) {
+      return 'Silver';
+    }
+
+    return 'Bronze';
+  }
+
+  String _formatPoints(int points) {
+    if (points >= 1000) {
+      final value = points / 1000;
+
+      if (value == value.roundToDouble()) {
+        return '${value.toInt()}k';
+      }
+
+      return '${value.toStringAsFixed(1)}k';
+    }
+
+    return points.toString();
   }
 
   // ─── Impact Section ────────────────────────────────────────────────────────

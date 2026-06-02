@@ -174,11 +174,7 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.language_rounded,
                   title: 'Language',
                   subtitle: 'English',
-                  trailing: Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: _muted(context),
-                    size: 15,
-                  ),
+                  trailing: null,
                 ),
               ],
             ),
@@ -474,14 +470,6 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Text(
-                      'Application ready for review',
-                      style: TextStyle(
-                        color: _muted(context),
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -510,7 +498,7 @@ class ProfileScreen extends StatelessWidget {
                 );
               },
               icon: const Icon(Icons.description_rounded, size: 19),
-              label: const Text('Generate Report'),
+              label: const Text('Submit Application'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryGreen,
                 foregroundColor: Colors.white,

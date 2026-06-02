@@ -56,6 +56,8 @@ dev_dependencies:
 flutter:
   assets:
     - assets/videos/circular_symbol.mp4
+    - assets/images/circular_jo_logo.png
+
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:

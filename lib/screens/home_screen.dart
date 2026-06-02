@@ -287,11 +287,15 @@ class _HomeScreenState extends State<HomeScreen>
               shape: BoxShape.circle,
               border: Border.all(color: _HomeColors.outlineVariant),
             ),
-            child: ClipOval(
-              child: Image.network(
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuDqm8e5NszwOHEmC9FlF337ngGkViuYGXPKA7nHRl4EovjMVHlgJ2AKJ59oo0is6waaCrueMmkyqsBA5miK_tVhKrhWs8VOR28WRbtgwJJh-HCwuThFjWd70jszrTUkUWrIY_mzBUchHsuM5wuiSZ0-C1nvsnvPIKA7Yv06_RNuhMy4nVEGtXZJobEuRYnEQ4fMAusw_WiP_jB3UbyFU8C29n904H8goGOAGf-0kzUMuoKnfNSeoFYeTjrTwZ0_X_0jqmYGbhuiZq8',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(Icons.store, color: _HomeColors.primary),
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Image.asset(
+                'assets/images/circular_jo_logo.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Icon(
+                  Icons.recycling_rounded,
+                  color: _HomeColors.primary,
+                ),
               ),
             ),
           ),

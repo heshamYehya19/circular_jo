@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../constants/app_colors.dart';
 
 class PointSystemScreen extends StatefulWidget {
@@ -24,13 +25,13 @@ class _PointSystemScreenState extends State<PointSystemScreen>
 
   final List<_TierData> tiers = const [
     _TierData(
-      name: 'Bronze Tier',
+      name: 'Bronze',
       range: '0 - 2,999',
       minPoints: 0,
       maxPoints: 2999,
       icon: Icons.eco_rounded,
       color: Color(0xFFB9794B),
-      description: 'Entry verified sustainability partner.',
+      description: 'Entry verified sustainability tier.',
     ),
     _TierData(
       name: 'Silver',
@@ -39,7 +40,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
       maxPoints: 8999,
       icon: Icons.workspace_premium_rounded,
       color: Color(0xFF78909C),
-      description: 'Active recovery partner with visible impact.',
+      description: 'Active recovery tier with visible verified impact.',
     ),
     _TierData(
       name: 'Gold',
@@ -51,7 +52,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
       description: 'High-performing organization with priority recognition.',
     ),
     _TierData(
-      name: 'Platinum Tier',
+      name: 'Platinum',
       range: '20,000+',
       minPoints: 20000,
       maxPoints: 99999,
@@ -97,7 +98,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
     );
 
     _slide = Tween<Offset>(
-      begin: const Offset(0, 0.06),
+      begin: const Offset(0, 0.05),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -117,8 +118,8 @@ class _PointSystemScreenState extends State<PointSystemScreen>
     );
 
     _pulse = Tween<double>(
-      begin: 0.15,
-      end: 0.36,
+      begin: 0.14,
+      end: 0.32,
     ).animate(
       CurvedAnimation(
         parent: _pulseController,
@@ -164,13 +165,15 @@ class _PointSystemScreenState extends State<PointSystemScreen>
         child: SlideTransition(
           position: _slide,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 38),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 44),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeroCard(),
                 const SizedBox(height: 18),
                 _buildCurrentTierCard(),
+                const SizedBox(height: 18),
+                _buildTaxEligibilityCard(),
                 const SizedBox(height: 18),
                 _buildTierSelector(),
                 const SizedBox(height: 18),
@@ -217,11 +220,11 @@ class _PointSystemScreenState extends State<PointSystemScreen>
           child: Stack(
             children: [
               Positioned(
-                right: -20,
-                top: -20,
+                right: -26,
+                top: -24,
                 child: Icon(
                   Icons.stars_rounded,
-                  size: 126,
+                  size: 135,
                   color: Colors.white.withOpacity(0.10),
                 ),
               ),
@@ -252,7 +255,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Impact Partner Points',
+                              'Impact Tier Points',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 22,
@@ -301,6 +304,9 @@ class _PointSystemScreenState extends State<PointSystemScreen>
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.12),
           borderRadius: BorderRadius.circular(17),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.08),
+          ),
         ),
         child: Column(
           children: [
@@ -418,26 +424,139 @@ class _PointSystemScreenState extends State<PointSystemScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 11,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    'Badge Active',
-                    style: TextStyle(
+                Row(
+                  children: [
+                    _smallPill(
+                      text: 'Badge Active',
                       color: AppColors.primaryGreen,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    _smallPill(
+                      text: 'Tax Eligible',
+                      color: AppColors.brightTeal,
+                    ),
+                  ],
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _smallPill({
+    required String text,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaxEligibilityCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.deepTeal,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.deepTeal.withOpacity(0.22),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -20,
+            bottom: -26,
+            child: Icon(
+              Icons.receipt_long_rounded,
+              color: Colors.white.withOpacity(0.10),
+              size: 115,
+            ),
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 50,
+                width: 50,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(17),
+                ),
+                child: const Icon(
+                  Icons.verified_user_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tax Exemption Advantage',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Organizations that reach Silver Tier or above can submit a Tax Exemption Request supported by verified impact records.',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.78),
+                        fontSize: 12.7,
+                        height: 1.45,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 11,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.14),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Text(
+                        'Available from Silver Tier',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10.8,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -502,10 +621,10 @@ class _PointSystemScreenState extends State<PointSystemScreen>
                         children: [
                           Expanded(
                             child: Text(
-                              tier.name,
+                              '${tier.name} Tier',
                               style: TextStyle(
                                 color: text,
-                                fontSize: 16,
+                                fontSize: 15.2,
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
@@ -542,6 +661,8 @@ class _PointSystemScreenState extends State<PointSystemScreen>
   }
 
   Widget _buildSelectedTierDetails(_TierData tier) {
+    final bool eligibleForTax = tier.name != 'Bronze';
+
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 260),
       child: Container(
@@ -559,7 +680,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
             _cardHeader(
               icon: tier.icon,
               iconColor: tier.color,
-              title: '${tier.name} Partner',
+              title: '${tier.name} Tier',
               subtitle: tier.description,
             ),
             const SizedBox(height: 16),
@@ -583,6 +704,13 @@ class _PointSystemScreenState extends State<PointSystemScreen>
               value: _tierPriority(tier.name),
               color: AppColors.brightTeal,
             ),
+            const SizedBox(height: 12),
+            _detailRow(
+              icon: Icons.receipt_long_rounded,
+              title: 'Tax Exemption Request',
+              value: eligibleForTax ? 'Eligible' : 'From Silver',
+              color: eligibleForTax ? AppColors.freshGreen : Colors.orangeAccent,
+            ),
           ],
         ),
       ),
@@ -591,10 +719,10 @@ class _PointSystemScreenState extends State<PointSystemScreen>
 
   String _tierRecognition(String tier) {
     switch (tier) {
-      case 'Bronze Tier':
+      case 'Bronze':
         return 'Basic public badge';
       case 'Silver':
-        return 'Verified partner badge';
+        return 'Verified tier badge';
       case 'Gold':
         return 'Highlighted sustainability badge';
       default:
@@ -604,7 +732,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
 
   String _tierPriority(String tier) {
     switch (tier) {
-      case 'Bronze Tier':
+      case 'Bronze':
         return 'Standard visibility';
       case 'Silver':
         return 'Improved visibility';
@@ -703,9 +831,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
       title: 'How Points Are Earned',
       icon: Icons.add_task_rounded,
       child: Column(
-        children: rules.map((rule) {
-          return _earningRule(rule);
-        }).toList(),
+        children: rules.map(_earningRule).toList(),
       ),
     );
   }
@@ -797,50 +923,92 @@ class _PointSystemScreenState extends State<PointSystemScreen>
         title: 'Priority Matching',
         color: AppColors.freshGreen,
       ),
+      _BenefitData(
+        icon: Icons.receipt_long_rounded,
+        title: 'Tax Exemption Request',
+        color: const Color(0xFF7A9EEC),
+      ),
     ];
 
     return _sectionCard(
       title: 'Tier Benefits',
       icon: Icons.card_giftcard_rounded,
-      child: GridView.count(
-        crossAxisCount: 2,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.55,
-        children: benefits.map((benefit) {
-          return Container(
+      child: Column(
+        children: [
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.55,
+            children: benefits.map((benefit) {
+              return Container(
+                padding: const EdgeInsets.all(13),
+                decoration: BoxDecoration(
+                  color: benefit.color.withOpacity(0.11),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: benefit.color.withOpacity(0.25),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      benefit.icon,
+                      color: benefit.color,
+                      size: 25,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        benefit.title,
+                        style: TextStyle(
+                          color: text,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-              color: benefit.color.withOpacity(0.11),
+              color: AppColors.primaryGreen.withOpacity(0.09),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: benefit.color.withOpacity(0.25),
+                color: AppColors.primaryGreen.withOpacity(0.22),
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  benefit.icon,
-                  color: benefit.color,
-                  size: 25,
+                  Icons.info_rounded,
+                  color: AppColors.primaryGreen,
+                  size: 21,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    benefit.title,
+                    'Tax Exemption Request is available for Silver Tier and above.',
                     style: TextStyle(
-                      color: text,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w800,
+                      color: muted,
+                      fontSize: 12.3,
+                      height: 1.35,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ],
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }

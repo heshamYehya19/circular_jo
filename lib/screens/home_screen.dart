@@ -333,24 +333,7 @@ class _HomeScreenState extends State<HomeScreen>
                   },
                 ),
                 const SizedBox(height: 4),
-                Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _HomeColors.secondaryContainer,
-                    borderRadius: BorderRadius.circular(9999),
-                  ),
-                  child: Text(
-                    'Silver Tier',
-                    style: TextStyle(
-                      fontFamily: 'Hanken Grotesk',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: _HomeColors.onSecondaryContainer,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ),
+                _buildTierTag(),
               ],
             ),
           ),
@@ -358,6 +341,73 @@ class _HomeScreenState extends State<HomeScreen>
         ],
       ),
     );
+  }
+
+  Widget _buildTierTag() {
+    return ValueListenableBuilder<DemoImpactStats>(
+      valueListenable: DemoAppState.impactStats,
+      builder: (context, stats, _) {
+        final tier = _tierFromPoints(stats.points);
+        final tierColor = _tierColor(tier);
+        final tierTextColor = _tierTextColor(tier);
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+          decoration: BoxDecoration(
+            color: tierColor,
+            borderRadius: BorderRadius.circular(9999),
+            boxShadow: [
+              BoxShadow(
+                color: tierColor.withOpacity(0.25),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Text(
+            '$tier Tier',
+            style: TextStyle(
+              fontFamily: 'Hanken Grotesk',
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: tierTextColor,
+              letterSpacing: 0.8,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Color _tierColor(String tier) {
+    switch (tier) {
+      case 'Bronze':
+        return const Color(0xFFB9794B);
+      case 'Silver':
+        return const Color(0xFFD7DEE2);
+      case 'Gold':
+        return const Color(0xFFFFC947);
+      case 'Platinum':
+        return const Color(0xFF9BEFE0);
+      default:
+        return AppColors.primaryGreen;
+    }
+  }
+
+  Color _tierTextColor(String tier) {
+    switch (tier) {
+      case 'Bronze':
+        return Colors.white;
+      case 'Silver':
+        return const Color(0xFF263238);
+      case 'Gold':
+        return const Color(0xFF3B2A00);
+      case 'Platinum':
+        return const Color(0xFF003B35);
+      default:
+        return Colors.white;
+    }
   }
 
   // ─── move to point system ────────────────────────────────────────────────────────

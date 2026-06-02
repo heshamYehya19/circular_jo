@@ -570,7 +570,7 @@ class _PointSystemScreenState extends State<PointSystemScreen>
             _detailRow(
               icon: Icons.receipt_long_rounded,
               title: 'Tax Exemption Request',
-              value: eligibleForTax ? 'Eligible' : 'From Silver',
+              value: eligibleForTax ? 'Eligible' : 'Not qualified',
               color: eligibleForTax ? AppColors.freshGreen : Colors.orangeAccent,
             ),
           ],
